@@ -31,6 +31,10 @@ docker-compose up
 
 - **Migrate** database 
 
+    `docker-compose run django python manage.py makemigrate`
+
+- **Apply** migration
+
     `docker-compose run django python manage.py migrate`
 
 - Crete **superuser** 
