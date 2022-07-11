@@ -20,7 +20,7 @@ class CommentSerializer(DynamicFieldsModelSerializer):
     discussion_id = serializers.IntegerField(write_only=True, required=True, allow_null=False)
     class Meta:
         model = Comments
-        fields = ('id','discussion_id', 'comment', 'created_at', 'updated_at')
+        fields = ('id','discussion_id', 'comment', 'parent', 'created_at', 'updated_at')
         read_only_fields = ('created_at', 'updated_at')
         extra_kwargs = {
             'comment': {'required': True},

@@ -44,3 +44,7 @@ Anytime you make changes to databas, do the following:
 - Crete **superuser** 
 
     `docker-compose run django python manage.py createsuperuser`
+
+- Install **package**
+
+    `docker-compose run django pip install drf-nested-routers`
