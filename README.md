@@ -13,9 +13,13 @@ docker-compose up
   
     `docker build .`
 
-- **Start Django project** using `django` service defined inside docker-compose
+- **Start Django Project** using `django` service defined inside docker-compose
   
     `docker-compose run django django-admin startproject intdesk_api .`
+
+- **Start Django App**
+  
+    `docker-compose run django django-admin startapp questions`
 
 - Run `docker-compose`
   
