@@ -9,7 +9,7 @@ docker-compose up
 
 # Docker Commands
  
-- **Build** Dockerfile 
+- **Build** `Dockerfile` 
   
     `docker build .`
 
@@ -17,7 +17,7 @@ docker-compose up
   
     `docker-compose run django django-admin startproject intdesk_api .`
 
-- Run **docker-compose**
+- Run `docker-compose`
   
     `docker-compose up`
 
@@ -25,10 +25,10 @@ docker-compose up
 
     `docker-compose up --build`
 
-- **Migrate** database using `django` service defined inside docker-compose
+- **Migrate** database 
 
     `docker-compose run django python manage.py migrate`
 
-- Crete **superuser** `django` service defined inside docker-compose
+- Crete **superuser** 
 
     `docker-compose run django python manage.py createsuperuser`
