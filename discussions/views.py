@@ -28,6 +28,22 @@ class DiscussionViewSet(viewsets.ModelViewSet):
         serializer = CommentSerializer(comment)
         return Response(serializer.data)
 
+    ## creat reply to a comment
+    @action(detail=True, methods=['post'], url_path='create_reply/(?P<comment_id>[0-9]+)')
+    def create_reply(self, request,comment_id,pk=None):
+        discussion = get_object_or_404(Discussion,pk=pk)
+        parent_comment = discussion.comments.get(pk=comment_id)
+        data = request.data
+
+        comment_ = Comments.objects.create(
+            comment = data.get('comment'),
+            discussion_id = discussion.id,
+            parent = parent_comment
+        )
+
+        serializer = CommentSerializer(comment_)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     ## create a new comment for a discussion
     @action(detail=True, methods=['POST'])
     def comment(self,request,pk):

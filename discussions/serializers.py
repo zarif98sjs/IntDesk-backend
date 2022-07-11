@@ -27,7 +27,7 @@ class CommentSerializer(DynamicFieldsModelSerializer):
         }
 
 class DiscussionSerializer(DynamicFieldsModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True, fields=('comment', 'created_at', 'updated_at'))
+    comments = CommentSerializer(many=True, read_only=True, fields=('comment', 'parent', 'created_at', 'updated_at'))
     class Meta:
         model = Discussion
         fields = '__all__'
