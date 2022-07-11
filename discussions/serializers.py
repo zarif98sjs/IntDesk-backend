@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from discussions.models import Discussion
+from discussions.models import Discussion, Comments
 
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
@@ -16,7 +16,18 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
 
+class CommentSerializer(DynamicFieldsModelSerializer):
+    discussion_id = serializers.IntegerField(write_only=True, required=True, allow_null=False)
+    class Meta:
+        model = Comments
+        fields = ('id','discussion_id', 'comment', 'created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at')
+        extra_kwargs = {
+            'comment': {'required': True},
+        }
+
 class DiscussionSerializer(DynamicFieldsModelSerializer):
+    comments = CommentSerializer(many=True, read_only=True, fields=('comment', 'created_at', 'updated_at'))
     class Meta:
         model = Discussion
         fields = '__all__'
@@ -25,3 +36,4 @@ class DiscussionSerializer(DynamicFieldsModelSerializer):
             'title': {'required': True},
             'description': {'required': True},
         }
+

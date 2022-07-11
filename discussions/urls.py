@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import path
 
 router = routers.DefaultRouter()
-router.register('discussions', DiscussionViewSet)
+router.register('discussion', DiscussionViewSet)
 
 
 urlpatterns = [

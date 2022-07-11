@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Discussion(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
@@ -12,3 +11,11 @@ class Discussion(models.Model):
     comment_count = models.IntegerField(default=0)
     def __str__(self):
         return self.title
+
+class Comments(models.Model):
+    discussion = models.ForeignKey(Discussion, on_delete=models.CASCADE, null=False, related_name='comments')
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return self.comment
