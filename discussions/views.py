@@ -28,7 +28,7 @@ class DiscussionViewSet(viewsets.ModelViewSet):
         serializer = CommentSerializer(comment)
         return Response(serializer.data)
 
-    ## creat reply to a comment
+    ## create reply to a comment
     @action(detail=True, methods=['post'], url_path='create_reply/(?P<comment_id>[0-9]+)')
     def create_reply(self, request,comment_id,pk=None):
         discussion = get_object_or_404(Discussion,pk=pk)
