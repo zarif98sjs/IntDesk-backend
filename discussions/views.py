@@ -5,10 +5,27 @@ from rest_framework.response import Response
 from discussions.models import Discussion,Comments
 from discussions.serializers import DiscussionSerializer, CommentSerializer
 from django.shortcuts import get_object_or_404
+from django.db import transaction
+
 
 class DiscussionViewSet(viewsets.ModelViewSet):
     queryset = Discussion.objects.all()
     serializer_class = DiscussionSerializer
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        data = request.data
+
+        discussion = Discussion.objects.create(
+            title=data['title'],
+            description=data['description'],
+            user=request.user
+        )
+
+        serializer = DiscussionSerializer(discussion)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
 
     ## get all comments of a discussion
     @action(detail=True, methods=['get'])

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from discussions.models import Discussion, Comments
+from users.serializers import UserSerializer
 
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
@@ -27,6 +28,7 @@ class CommentSerializer(DynamicFieldsModelSerializer):
         }
 
 class DiscussionSerializer(DynamicFieldsModelSerializer):
+    user = UserSerializer(read_only=True)
     comments = CommentSerializer(many=True, read_only=True, fields=('comment', 'parent', 'created_at', 'updated_at'))
     class Meta:
         model = Discussion

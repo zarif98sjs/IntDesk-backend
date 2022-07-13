@@ -1,12 +1,14 @@
 from django.db import models
+from django.conf import settings
 
 class Discussion(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='discussions', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     upvotes = models.IntegerField(default=0)
-    downvotes = models.IntegerField(default=0)
+    downvotes = models.IntegerField(default=0)  
     views = models.IntegerField(default=0)
     comment_count = models.IntegerField(default=0)
     def __str__(self):
