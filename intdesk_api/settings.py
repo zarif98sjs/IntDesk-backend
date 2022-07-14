@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'discussions',
-    'users'
+    'users',
+    'problems'
 ]
 
 MIDDLEWARE = [

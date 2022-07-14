@@ -21,5 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('discussions.urls')),
     path('users/', include('users.urls')),
-    path('token/', views.obtain_auth_token)
+    path('token/', views.obtain_auth_token),
+    # path('problems/', include('problems.urls'))
+
 ]
