@@ -1,4 +1,3 @@
-from gc import get_objects
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -45,32 +44,26 @@ class DiscussionViewSet(viewsets.ModelViewSet):
         serializer = CommentSerializer(comment)
         return Response(serializer.data)
 
-    ## create reply to a comment
-    @action(detail=True, methods=['post'], url_path='create_reply/(?P<comment_id>[0-9]+)')
-    def create_reply(self, request,comment_id,pk=None):
-        discussion = get_object_or_404(Discussion,pk=pk)
-        parent_comment = discussion.comments.get(pk=comment_id)
-        data = request.data
-
-        comment_ = Comments.objects.create(
-            comment = data.get('comment'),
-            discussion_id = discussion.id,
-            parent = parent_comment
-        )
-
-        serializer = CommentSerializer(comment_)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     ## create a new comment for a discussion
+    ## parent is null for main comments, and not null denotes a reply
     @action(detail=True, methods=['POST'])
     def comment(self,request,pk):
         discussion = get_object_or_404(Discussion,pk=pk)
         data = request.data
 
-        comment_ = Comments.objects.create(
-            comment = data.get('comment'),
-            discussion_id = discussion.id
-        )
+        if data.get('comment') is None:
+            raise ValueError("Comment is required")
+        elif data.get('hash') is None:
+            raise ValueError("Hash is required")
+        else:
+            comment_ = Comments.objects.create(
+                comment = data.get('comment'),
+                hash = data.get('hash'),
+                discussion_id = discussion.id,
+                user = request.user,
+                parent = data.get('parent')
+            )
 
         serializer = CommentSerializer(comment_)
         return Response(serializer.data, status=status.HTTP_200_OK)
