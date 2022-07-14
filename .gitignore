@@ -6,3 +6,8 @@ env/
 .env
 *.pyc
 intdesk_api/__pycache__/settings.cpython-38.pyc
+*.pyc
+intdesk_api/__pycache__/__init__.cpython-38.pyc
+intdesk_api/__pycache__/settings.cpython-38.pyc
+intdesk_api/__pycache__/urls.cpython-38.pyc
+intdesk_api/__pycache__/wsgi.cpython-38.pyc

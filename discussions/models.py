@@ -17,6 +17,8 @@ class Discussion(models.Model):
 class Comments(models.Model):
     discussion = models.ForeignKey(Discussion, on_delete=models.CASCADE, null=False, related_name='comments')
     comment = models.TextField()
+    hash = models.CharField(max_length=100, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
