@@ -4,6 +4,9 @@
 
 - install docker first
 - git clone repo
+- `docker build .`
+- `docker-compose run django python manage.py makemigrations`
+- `docker-compose run django python manage.py migrate`
 - `docker-compose up`
 
 
