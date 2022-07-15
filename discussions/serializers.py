@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from discussions.models import Discussion, Comments
+from discussions.models import Discussion, Comments, Upvoted, Downvoted
 from users.serializers import UserSerializer
 
 
@@ -40,3 +40,18 @@ class DiscussionSerializer(DynamicFieldsModelSerializer):
             'description': {'required': True},
         }
 
+class UpvotedSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = Upvoted
+        fields = ('id','user_id', 'discussion_id')
+        extra_kwargs = {
+            'user': {'required': True},
+        }
+
+class DownvotedSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = Downvoted
+        fields = ('id','user_id', 'discussion_id')
+        extra_kwargs = {
+            'user': {'required': True},
+        }

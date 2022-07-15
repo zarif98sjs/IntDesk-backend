@@ -1,8 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from discussions.models import Discussion,Comments
-from discussions.serializers import DiscussionSerializer, CommentSerializer
+from discussions.models import Discussion,Comments, Upvoted, Downvoted
+from discussions.serializers import DiscussionSerializer, CommentSerializer, UpvotedSerializer, DownvotedSerializer
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 
@@ -24,7 +24,20 @@ class DiscussionViewSet(viewsets.ModelViewSet):
         serializer = DiscussionSerializer(discussion)
         
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+    
+    ## put request to update the discussion
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        data = request.data
+        discussion = get_object_or_404(Discussion, pk=kwargs['pk'])
+        if data.get('title') is not None : discussion.title = data['title']
+        if data.get('description') is not None : discussion.description = data['description']
+        if data.get('upvotes') is not None : discussion.upvotes = data['upvotes']
+        if data.get('downvotes') is not None : discussion.downvotes = data['downvotes']
+        if data.get('views') is not None : discussion.downvotes = data['views']
+        discussion.save()
+        serializer = DiscussionSerializer(discussion)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     ## get all comments of a discussion
     @action(detail=True, methods=['get'])
@@ -67,3 +80,65 @@ class DiscussionViewSet(viewsets.ModelViewSet):
 
         serializer = CommentSerializer(comment_)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    ## mark discussion upvoted by a user
+    @action(detail=True, methods=['POST'])
+    def upvoted(self, request,pk=None):
+        discussion = get_object_or_404(Discussion,pk=pk)
+
+        ## check if already upvoted
+        if Upvoted.objects.filter(discussion=discussion, user=request.user).exists():
+            raise ValueError("Already upvoted")
+        else:
+            upvoted = Upvoted.objects.create(
+                user = request.user,
+                discussion = discussion
+                )
+
+        serializer = UpvotedSerializer(upvoted)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    ## mark discussion downvoted by a user
+    @action(detail=True, methods=['POST'])
+    def downvoted(self, request,pk=None):
+        discussion = get_object_or_404(Discussion,pk=pk)
+
+        ## check if already downvoted
+        if Downvoted.objects.filter(discussion=discussion, user=request.user).exists():
+            raise ValueError("Already downvoted")
+        else:
+            downvoted = Downvoted.objects.create(
+                user = request.user,
+                discussion = discussion
+                )
+
+        serializer = DownvotedSerializer(downvoted)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    ## query if a discussion is upvoted by a user
+    @action(detail=True, methods=['GET'])
+    def check_vote_status(self, request,pk=None):
+        discussion = get_object_or_404(Discussion,pk=pk)
+        ret = {}
+        isupvoted = Upvoted.objects.filter(discussion=discussion, user=request.user).exists()
+        isdownvoted = Downvoted.objects.filter(discussion=discussion, user=request.user).exists()
+        ret = {'isupvoted': isupvoted, 'isdownvoted': isdownvoted}
+        return Response(ret, status=status.HTTP_200_OK)
+
+    ## delete from upvoted table
+    @action(detail=True, methods=['DELETE'])
+    def delete_upvoted(self, request,pk=None):
+        discussion = get_object_or_404(Discussion,pk=pk)
+        upvoted = Upvoted.objects.filter(discussion=discussion, user=request.user)
+        upvoted.delete()
+        ret = {'message': 'upvote deleted'}
+        return Response(ret,status=status.HTTP_200_OK)
+
+    ## delete from downvoted table
+    @action(detail=True, methods=['DELETE'])
+    def delete_downvoted(self, request,pk=None):
+        discussion = get_object_or_404(Discussion,pk=pk)
+        downvoted = Downvoted.objects.filter(discussion=discussion, user=request.user)
+        downvoted.delete()
+        ret = {'message': 'downvote deleted'}
+        return Response(ret,status=status.HTTP_200_OK)
