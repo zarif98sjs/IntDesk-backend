@@ -1,5 +1,5 @@
 from django.db import models
-from sqlalchemy import desc
+from django.conf import settings
 
 class Company(models.Models):
     name = models.CharField(max_length=100)
@@ -25,53 +25,69 @@ class Category(models.Models):
 class SubCategory(models.Models):
     name = models.CharField(max_length=100)
     description = models.TextField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories')
 
+    # one to many relation
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories', null=False)
+    
     def __str__(self):
         return self.name
 
-
 class Problem(models.Models):
+    
     name = models.CharField(max_length=100)
     description = models.TextField()
     time_limit = models.CharField(max_length=20, default="1s")
     memory_limit = models.CharField(max_length=20, default="256MB")
-    difficulty = models.CharField(max_length=20, default="Easy", choices=["Easy", "Medium", "Hard"])
+    difficulty = models.CharField(max_length=20, default="Easy", choices=["Easy", "Medium","Hard"])
     submission_count = models.IntegerField(default=0)
     solve_count = models.IntegerField(default=0)
+
+    # many to many relation fields
+    companies = models.ManyToManyField(Company)
+    roles = models.ManyToManyField(Role)
+    subcategories = models.ManyToManyField(SubCategory)
 
     def __str__(self):
         return self.name
 
-
 class InputOutput(models.Models):
+
     input = models.TextField()
     output = models.TextField()
-    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='input_outputs', null=False)
     points = models.IntegerField(default=0)
 
+    # one to many relation
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='input_outputs', null=False)
+    
     def __str__(self):
         return self.input
 
-    
 
-class ProblemCompany(models.Models):
+class BookMark(models.Models):
+    date_added = models.DateTimeField(auto_now=True)
+
+    # one to many relations
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    count = models.IntegerField(default=1)
-
-    def __str__(self):
-        return self.problem.name + " : " + self.company.name + " (" + str(self.count) + ")"
-
-
-class ProblemRole(models.Models):
-    problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookmarks')
     
     def __str__(self):
-        return self.problem.name + " : " + self.role.name
+        return self.problem.name + " : " + self.user.username
 
 
-class ProblemSubCategory(models.Models):
+class Solution(models.Models):
+    code = models.TextField()
+    language = models.CharField(max_length=20, default="c", choices=["c", "cpp", "java", "python"])
+    runtime = models.CharField(max_length=20)
+    memory_usage = models.CharField(max_length=20)
+    solve_status = models.CharField(
+        max_length=20, default="Pending", 
+        choices=["Pending", "Accepted", "Wrong Answer", "Time Limit Exceeded", 
+        "Memory Limit Exceeded", "Runtime Error", "Compile Error"]
+    )
+    
+    # one to many relations
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
-    subcategory = models.ForeignKey(SubCategory, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='solutions')
+    
+    def __str__(self):
+        return self.problem.name + " : " + self.user.name
