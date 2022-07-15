@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from discussions.models import Discussion, Comments
+from discussions.models import Discussion, Comments, Upvoted, Downvoted
 from users.serializers import UserSerializer
 
 
@@ -31,6 +31,7 @@ class CommentSerializer(DynamicFieldsModelSerializer):
 class DiscussionSerializer(DynamicFieldsModelSerializer):
     user = UserSerializer(read_only=True)
     comments = CommentSerializer(many=True, read_only=True, fields=('comment', 'parent', 'created_at', 'updated_at'))
+    tags = serializers.ListField(child=serializers.CharField(max_length=100))
     class Meta:
         model = Discussion
         fields = '__all__'
@@ -40,3 +41,18 @@ class DiscussionSerializer(DynamicFieldsModelSerializer):
             'description': {'required': True},
         }
 
+class UpvotedSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = Upvoted
+        fields = ('id','user_id', 'discussion_id')
+        extra_kwargs = {
+            'user': {'required': True},
+        }
+
+class DownvotedSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = Downvoted
+        fields = ('id','user_id', 'discussion_id')
+        extra_kwargs = {
+            'user': {'required': True},
+        }
