@@ -31,6 +31,7 @@ class CommentSerializer(DynamicFieldsModelSerializer):
 class DiscussionSerializer(DynamicFieldsModelSerializer):
     user = UserSerializer(read_only=True)
     comments = CommentSerializer(many=True, read_only=True, fields=('comment', 'parent', 'created_at', 'updated_at'))
+    tags = serializers.ListField(child=serializers.CharField(max_length=100))
     class Meta:
         model = Discussion
         fields = '__all__'

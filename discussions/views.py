@@ -14,10 +14,11 @@ class DiscussionViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         data = request.data
-
+        print(data['tags'])
         discussion = Discussion.objects.create(
             title=data['title'],
             description=data['description'],
+            tags=data['tags'],
             user=request.user
         )
 
