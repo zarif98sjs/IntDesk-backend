@@ -1,28 +1,28 @@
 from django.db import models
 from django.conf import settings
 
-class Company(models.Models):
+class Company(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
 
     def __str__(self):
         return self.name
 
-class Role(models.Models):
+class Role(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
 
     def __str__(self):
         return self.name
 
-class Category(models.Models):
+class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
 
     def __str__(self):
         return self.name
 
-class SubCategory(models.Models):
+class SubCategory(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
 
@@ -32,25 +32,26 @@ class SubCategory(models.Models):
     def __str__(self):
         return self.name
 
-class Problem(models.Models):
+class Problem(models.Model):
     
     name = models.CharField(max_length=100)
     description = models.TextField()
     time_limit = models.CharField(max_length=20, default="1s")
     memory_limit = models.CharField(max_length=20, default="256MB")
-    difficulty = models.CharField(max_length=20, default="Easy", choices=["Easy", "Medium","Hard"])
+    difficulty = models.CharField(max_length=20, default="Easy", choices=[
+        ("Easy", "Easy"), ("Medium", "Medium"),("Hard", "Hard")])
     submission_count = models.IntegerField(default=0)
     solve_count = models.IntegerField(default=0)
 
     # many to many relation fields
-    companies = models.ManyToManyField(Company)
-    roles = models.ManyToManyField(Role)
-    subcategories = models.ManyToManyField(SubCategory)
+    companies = models.ManyToManyField(Company, related_name="problems")
+    roles = models.ManyToManyField(Role, related_name="problems")
+    subcategories = models.ManyToManyField(SubCategory, related_name="problems")
 
     def __str__(self):
         return self.name
 
-class InputOutput(models.Models):
+class InputOutput(models.Model):
 
     input = models.TextField()
     output = models.TextField()
@@ -63,7 +64,7 @@ class InputOutput(models.Models):
         return self.input
 
 
-class BookMark(models.Models):
+class BookMark(models.Model):
     date_added = models.DateTimeField(auto_now=True)
 
     # one to many relations
@@ -74,15 +75,17 @@ class BookMark(models.Models):
         return self.problem.name + " : " + self.user.username
 
 
-class Solution(models.Models):
+class Solution(models.Model):
     code = models.TextField()
-    language = models.CharField(max_length=20, default="c", choices=["c", "cpp", "java", "python"])
+    language = models.CharField(max_length=20, default="c", choices=[
+        ("c", "c"), ("cpp", "cpp"), ("java", "java"), ("python", "python")])
     runtime = models.CharField(max_length=20)
     memory_usage = models.CharField(max_length=20)
     solve_status = models.CharField(
-        max_length=20, default="Pending", 
-        choices=["Pending", "Accepted", "Wrong Answer", "Time Limit Exceeded", 
-        "Memory Limit Exceeded", "Runtime Error", "Compile Error"]
+        max_length=50, default="Pending", choices=[("Pending", "Pending"), ("Accepted", "Accepted"), 
+        ("Wrong Answer", "Wrong Answer"), ("Time Limit Exceeded", "Time Limit Exceeded"), 
+        ("Memory Limit Exceeded", "Memory Limit Exceeded"), ("Runtime Error", "Runtime Error"), 
+        ("Compile Error", "Compile Error")]
     )
     
     # one to many relations

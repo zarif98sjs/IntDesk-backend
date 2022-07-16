@@ -22,6 +22,6 @@ urlpatterns = [
     path('', include('discussions.urls')),
     path('users/', include('users.urls')),
     path('token/', views.obtain_auth_token),
-    # path('problems/', include('problems.urls'))
+    path('problems/', include('problems.urls'))
 
 ]
