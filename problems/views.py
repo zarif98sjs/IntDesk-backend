@@ -92,7 +92,10 @@ class ProblemViewSet(viewsets.ModelViewSet):
         if data.get('name') is None:
             raise ValueError("company name is required")
 
-        company, created = Company.objects.get_or_create(name=data.get('name'), description=data.get('description'))
+        company, created = Company.objects.get_or_create(name=data.get('name'))
+        
+        if data.get('description') is not None:
+            company.description = data.get('description')
         
         company.save()
         problem.companies.add(company)
@@ -108,7 +111,10 @@ class ProblemViewSet(viewsets.ModelViewSet):
         if data.get('name') is None:
             raise ValueError("role name is required")
 
-        role, created = Role.objects.get_or_create(name=data.get('name'), description=data.get('description'))
+        role, created = Role.objects.get_or_create(name=data.get('name'))
+        
+        if data.get('description') is not None:
+            role.description = data.get('description')
         
         role.save()
         problem.roles.add(role)
@@ -130,11 +136,13 @@ class ProblemViewSet(viewsets.ModelViewSet):
 
 
         category, created = Category.objects.get_or_create(name=data.get('category'))
+        
         if data.get("category_description") is not None:
             category.description = data.get('category_description')
         category.save()
 
         subcategory, created = SubCategory.objects.get_or_create(name=data.get('name'), category=category)
+        
         if data.get("description") is not None:
             subcategory.description = data.get('description')
         subcategory.save()

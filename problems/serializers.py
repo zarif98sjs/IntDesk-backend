@@ -74,6 +74,12 @@ class ProblemSerializer(DynamicFieldsModelSerializer):
             'time_limit', 'memory_limit', 'difficulty', 'submission_count', 'solve_count'
         ]
 
+    # def to_representation(self, instance):
+    #     '''Convert compnay, roles, subcategories to list'''
+    #     ret = super().to_representation(instance)
+    #     ret['companies'] = [x.name for x in instance.companies]
+    #     return ret
+
     
 
 class BookMarkSerializer(DynamicFieldsModelSerializer):
