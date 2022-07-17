@@ -48,6 +48,8 @@ class Problem(models.Model):
     roles = models.ManyToManyField(Role, related_name="problems")
     subcategories = models.ManyToManyField(SubCategory, related_name="problems")
 
+    
+
     def __str__(self):
         return self.name
 

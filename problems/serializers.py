@@ -5,26 +5,41 @@ from problems.models import Company, Role, Category, SubCategory, Problem, \
 from users.serializers import UserSerializer
 
 
-class CompanySerializer(serializers.ModelSerializer):
+
+class DynamicFieldsModelSerializer(serializers.ModelSerializer):
+    """ Helper class to select fields dynamically via parameters """
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+class CompanySerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = Company
-        fields = '__all__'
+        fields = ('name', 'description')
 
 
-class RoleSerializer(serializers.ModelSerializer):
+class RoleSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Role
         fields = '__all__'
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
 
 
-class SubCategorySerializer(serializers.ModelSerializer):
+class SubCategorySerializer(DynamicFieldsModelSerializer):
     category = CategorySerializer(read_only=True)
     class Meta:
         model = SubCategory
@@ -33,27 +48,35 @@ class SubCategorySerializer(serializers.ModelSerializer):
             'category': {"required": True}
         }
 
-class InputOutputSerializer(serializers.ModelSerializer):
+class InputOutputSerializer(DynamicFieldsModelSerializer):
+
     
     class Meta:
         model = InputOutput
-        fields = '__all__'
+        fields = ('id', 'problem_id', 'input', 'output', 'points')
 
 
-class ProblemSerializer(serializers.ModelSerializer):
+class ProblemSerializer(DynamicFieldsModelSerializer):
 
-    companies = CompanySerializer(many=True, read_only=True)
-    roles = RoleSerializer(many=True, read_only=True)
-    subcategories = SubCategorySerializer(many=True, read_only=True)
-    inputoutputs = InputOutputSerializer(read_only=True)
+    companies = CompanySerializer(many=True)
+    roles = RoleSerializer(many=True)
+    subcategories = SubCategorySerializer(many=True)
+    
+    # a list of inputoutputs
+    input_outputs = InputOutputSerializer(many=True, fields=('input', 'output', 'points'))
+
 
     class Meta:
         model = Problem
-        fields = '__all__'
+        # fields = '__all__'
+        fields = [
+            'input_outputs', 'companies', 'subcategories', 'roles', 'name', 'description',
+            'time_limit', 'memory_limit', 'difficulty', 'submission_count', 'solve_count'
+        ]
 
+    
 
-
-class BookMarkSerializer(serializers.ModelSerializer):
+class BookMarkSerializer(DynamicFieldsModelSerializer):
     problem = ProblemSerializer(read_only=True)
     user = UserSerializer(read_only=True)
     class Meta:
@@ -62,7 +85,7 @@ class BookMarkSerializer(serializers.ModelSerializer):
         
 
 
-class SolutionSerializer(serializers.ModelSerializer):
+class SolutionSerializer(DynamicFieldsModelSerializer):
     problem = ProblemSerializer(read_only=True)
     user = UserSerializer(read_only=True)
     
