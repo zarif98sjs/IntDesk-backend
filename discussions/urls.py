@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from discussions.views import DiscussionViewSet
+from discussions.views import DiscussionViewSet,DiscussionMineList
 from django.contrib import admin
 from django.urls import path
 
@@ -9,5 +9,6 @@ router.register('discussion', DiscussionViewSet)
 
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('myq/', DiscussionMineList.as_view()),
 ]

@@ -5,6 +5,7 @@ from discussions.models import Discussion,Comments, Upvoted, Downvoted
 from discussions.serializers import DiscussionSerializer, CommentSerializer, UpvotedSerializer, DownvotedSerializer
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from rest_framework import generics
 
 
 class DiscussionViewSet(viewsets.ModelViewSet):
@@ -36,8 +37,16 @@ class DiscussionViewSet(viewsets.ModelViewSet):
         if data.get('upvotes') is not None : discussion.upvotes = data['upvotes']
         if data.get('downvotes') is not None : discussion.downvotes = data['downvotes']
         if data.get('views') is not None : discussion.downvotes = data['views']
+        if data.get('tags') is not None : discussion.tags = data['tags']
         discussion.save()
         serializer = DiscussionSerializer(discussion)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    ## filter all discussions by user
+    @action(detail=True, methods=['get'])
+    def myq(self, request,pk=None):
+        queryset = Discussion.objects.filter(user=request.user)
+        serializer = DiscussionSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     ## get all comments of a discussion
@@ -143,3 +152,9 @@ class DiscussionViewSet(viewsets.ModelViewSet):
         downvoted.delete()
         ret = {'message': 'downvote deleted'}
         return Response(ret,status=status.HTTP_200_OK)
+
+class DiscussionMineList(generics.ListAPIView):
+    serializer_class = DiscussionSerializer
+
+    def get_queryset(self):
+        return Discussion.objects.filter(user=self.request.user)
