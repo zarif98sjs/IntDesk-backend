@@ -36,8 +36,10 @@ class Problem(models.Model):
     
     name = models.CharField(max_length=100)
     description = models.TextField()
-    time_limit = models.CharField(max_length=20, default="1s")
-    memory_limit = models.CharField(max_length=20, default="256MB")
+    time_limit = models.DecimalField(max_digits=5, decimal_places=2, default=1.00)
+    memory_limit = models.IntegerField(default=256)
+    # time_limit = models.CharField(max_length=20, default="1s")
+    # memory_limit = models.CharField(max_length=20, default="256MB")
     difficulty = models.CharField(max_length=20, default="Easy", choices=[
         ("Easy", "Easy"), ("Medium", "Medium"),("Hard", "Hard")])
     submission_count = models.IntegerField(default=0)

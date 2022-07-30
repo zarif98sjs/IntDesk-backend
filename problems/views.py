@@ -25,9 +25,10 @@ class ProblemViewSet(viewsets.ModelViewSet):
             time_limit=data['time_limit'],
             memory_limit=data['memory_limit'],
             difficulty=data['difficulty'],
-            submission_count=data['submission_count'],
-            solve_count=data['solve_count']
+            
         )
+        if data.get('submission_count') is not None: problem.submission_count = data['submission_count']
+        if data.get('solve_count') is not None: problem.solve_count = data['solve_count']
 
         serializer = ProblemSerializer(problem)
 
