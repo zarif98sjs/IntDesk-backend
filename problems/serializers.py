@@ -43,7 +43,7 @@ class SubCategorySerializer(DynamicFieldsModelSerializer):
     category = CategorySerializer(read_only=True)
     class Meta:
         model = SubCategory
-        fields = ('id', 'category_id', 'name', 'description')
+        fields = ('id', 'category', 'name', 'description')
         extra_kwargs = {
             'category': {"required": True}
         }

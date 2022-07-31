@@ -31,9 +31,8 @@ class SubCategory(models.Model):
     
     def __str__(self):
         return self.name
-
-class Problem(models.Model):
-    
+class Problem(models.Model): 
+    # localhost:8000/problems/problem/1/companies
     name = models.CharField(max_length=100)
     description = models.TextField()
     time_limit = models.DecimalField(max_digits=5, decimal_places=2, default=1.00)
