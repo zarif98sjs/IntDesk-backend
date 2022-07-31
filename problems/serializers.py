@@ -24,26 +24,26 @@ class CompanySerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = Company
-        fields = ('name', 'description')
+        fields = ('id', 'name', 'description')
 
 
 class RoleSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Role
-        fields = '__all__'
+        fields = ('id', 'name', 'description')
 
 
 class CategorySerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ('id', 'name', 'description')
 
 
 class SubCategorySerializer(DynamicFieldsModelSerializer):
     category = CategorySerializer(read_only=True)
     class Meta:
         model = SubCategory
-        fields = '__all__'
+        fields = ('id', 'category_id', 'name', 'description')
         extra_kwargs = {
             'category': {"required": True}
         }
@@ -68,11 +68,22 @@ class ProblemSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = Problem
-        # fields = '__all__'
-        fields = [
-            'input_outputs', 'companies', 'subcategories', 'roles', 'name', 'description',
-            'time_limit', 'memory_limit', 'difficulty', 'submission_count', 'solve_count'
-        ]
+        fields = '__all__'
+        fields = (
+             'id',
+             'input_outputs', 
+             'companies',
+              'subcategories', 
+              'roles', 
+              'name', 'description',
+             'time_limit', 'memory_limit', 'difficulty', 'submission_count', 'solve_count'
+        )
+
+    # def to_representation(self, instance):
+    #     '''Convert compnay, roles, subcategories to list'''
+    #     ret = super().to_representation(instance)
+    #     ret['companies'] = [x.name for x in instance.companies]
+    #     return ret
 
     
 
