@@ -9,7 +9,7 @@ class Assessment(models.Model):
 
     # many to many relations field
     roles = models.ManyToManyField(Role, related_name="assessment")
-    subcategories = models.ManyToManyField(SubCategory, related_name="assessment")
+    categories = models.ManyToManyField(Category, related_name="assessment")
     
     def __str__(self):
         return self.skill_name
@@ -34,7 +34,6 @@ class Question(models.Model):
 
 class Option(models.Model):
     description = models.TextField()
-    image_link = models.URLField(max_length = 200)
 
     def __str__(self):
         return self.description

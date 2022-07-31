@@ -1,7 +1,7 @@
 from sre_constants import IN
 from rest_framework import serializers
 from assessments.models import *
-from problems.serializers import RoleSerializer, CategorySerializer, SubCategorySerializer
+from problems.serializers import RoleSerializer, CategorySerializer
 from users.serializers import UserSerializer
 
 
@@ -23,7 +23,7 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
 class QuestionSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Question
-        fields = '__all__'
+        fields = ('id', 'assessment_id', 'description', 'time', 'points', 'difficulty_level')
 
 class OptionSerializer(DynamicFieldsModelSerializer):
     class Meta:
@@ -39,14 +39,15 @@ class QuesOptionSerializer(DynamicFieldsModelSerializer):
 class AssessmentSerializer(DynamicFieldsModelSerializer):
 
     roles = RoleSerializer(many=True)
-    subcategories = SubCategorySerializer(many=True)
+    categories = CategorySerializer(many=True)
     question = QuestionSerializer( many = True )
 
     class Meta:
         model = Assessment
-        fields = [
-            'roles', 'subcategories', 'question' , 'skill_name', 'passed_by', 'taken_by', 'image_link'
-        ]
+        fields = '__all__'
+        # fields = [
+        #    'id', 'roles', 'subcategories', 'questions' , 'skill_name', 'passed_by', 'taken_by', 'image_link'
+        #]
 
 
 

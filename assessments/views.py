@@ -12,6 +12,25 @@ from rest_framework import generics
 class AssessmentViewSet(viewsets.ModelViewSet):
     queryset = Assessment.objects.all()
     serializer_class = AssessmentSerializer
+    # http_method_names = ['get', 'post', 'head', 'delete', 'update']
+
+    ## add new question to an assessment
+    @action(detail=True, methods=['post'])
+    def question(self, request, pk):
+        assessment = get_object_or_404(Assessment, pk=pk)
+        data = request.data
+        # print(data)
+
+        question = Question.objects.create(
+            description = data['description'],
+            time = data['time'],
+            points = data['points'],
+            difficulty_level = data['difficulty'],
+            assessment_id = assessment.id
+        )
+        question.save()
+        serializer = QuestionSerializer(question)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     # create assessment
     @transaction.atomic
@@ -22,12 +41,45 @@ class AssessmentViewSet(viewsets.ModelViewSet):
             skill_name=data['skill_name'],
             passed_by=data['passed_by'],
             taken_by=data['taken_by'],
-            image_link = data['image_link']
+            image_link = data['image_link'],
+            # roles = data['roles']
         )
+        
+
+        if data.get('roles') is None:
+            serializer = AssessmentSerializer(assessment)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        for role in data.get('roles'):
+            # print(role)
+            role, created = Role.objects.get_or_create(name=role)
+            role.save()
+            assessment.roles.add(role)
+            # serializer = RoleSerializer(role)  
+        
+        # if data.get('subcategories') is None:
+        #     serializer = AssessmentSerializer(assessment)
+        #     return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # for subcategory in data.get('subcategories'):
+        #     # print(role)
+        #     subcategory, created = SubCategory.objects.get_or_create(name=subcategory)
+        #     subcategory.save()
+        #     assessment.subcategories.add(subcategory)
 
         serializer = AssessmentSerializer(assessment)
-
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    
+
+    ## delete assessment
+    @action(detail=True, methods=['DELETE'])
+    def delete(self, request, pk=None):
+        assessment = get_object_or_404(Assessment,pk=pk)
+        assessment.delete()
+        ret = {'message': 'assessment deleted'}
+        return Response(ret,status=status.HTTP_200_OK)
+
 
     ## create a new assessment
     @action(detail=True, methods=['POST'])
@@ -38,7 +90,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
             skill_name=data['skill_name'],
             passed_by=data['passed_by'],
             taken_by=data['taken_by'],
-            image_link = data['image_link']
+            image_link = data['image_link'],
+            # roles = data['roles']
         )
 
         serializer = AssessmentSerializer(assessment)
@@ -62,28 +115,9 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-    ## add new question to an assessment
-    @action(detail=True, methods=['POST'])
-    def question(self, request, pk):
+   
 
-        
-        assessment = get_object_or_404(Assessment, pk=pk)
-        data = request.data
-        
-        if data.get('question') is None:
-            raise ValueError("question is required")
 
-        question = Question.objects.create(
-            description = data['description'],
-            time = data['time'],
-            points = data['points'],
-            difficulty_level = data['difficulty_level'],
-            assessment = assessment
-        )
-
-        question.save()
-        serializer = QuestionSerializer(question)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
     # ## put request to update problem
@@ -111,8 +145,9 @@ class AssessmentViewSet(viewsets.ModelViewSet):
 
     ## get all questions of an assessment
     @action(detail=True, methods=['get'])
-    def questions(self, request, pk=None):
+    def question(self, request, pk=None):
         assess = get_object_or_404(Assessment, pk=pk)
-        questions = assess.questions.all()
+        questions = assess.question.all()
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data)
+
