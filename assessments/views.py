@@ -145,7 +145,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
 
     ## get all questions of an assessment
     @action(detail=True, methods=['get'])
-    def question(self, request, pk=None):
+    def questions(self, request, pk=None):
         assess = get_object_or_404(Assessment, pk=pk)
         questions = assess.question.all()
         serializer = QuestionSerializer(questions, many=True)
