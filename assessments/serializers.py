@@ -29,11 +29,20 @@ class OptionSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Option
         fields = '__all__'
+        extra_kwargs = {
+            'description': {'required': True},
+            'difficulty_level' : {'required': True},
+            'time' : {'required': True},
+        }
 
 class QuesOptionSerializer(DynamicFieldsModelSerializer):
+    options = OptionSerializer
     class Meta:
         model = QuesOption
-        fields = '__all__'
+        fields = ('option_id', 'question_id', 'is_correct')
+        extra_kwargs = {
+            'is_correct': {'required': True},
+        }
 
 
 class AssessmentSerializer(DynamicFieldsModelSerializer):
@@ -48,7 +57,21 @@ class AssessmentSerializer(DynamicFieldsModelSerializer):
         # fields = [
         #    'id', 'roles', 'subcategories', 'questions' , 'skill_name', 'passed_by', 'taken_by', 'image_link'
         #]
+        extra_kwargs = {
+            'skill_name': {'required': True},
+            'image_link' : {'required': True},
+        }
 
+
+class UserAssessmentSerializer(DynamicFieldsModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = UserAssessment
+        fields = '__all__'
+        extra_kwargs = {
+            'user': {'required': True},
+            'assessment' : {'required': True},
+        }
 
 
 
