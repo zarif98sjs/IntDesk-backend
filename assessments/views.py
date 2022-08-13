@@ -149,5 +149,6 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         assess = get_object_or_404(Assessment, pk=pk)
         questions = assess.question.all()
         serializer = QuestionSerializer(questions, many=True)
+        print(serializer.data)
         return Response(serializer.data)
 
