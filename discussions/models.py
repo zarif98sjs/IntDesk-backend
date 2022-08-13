@@ -25,6 +25,7 @@ class Comments(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     # parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     parent = models.CharField(max_length=100, null=True)
+    
     def __str__(self):
         return self.comment
 
@@ -39,3 +40,5 @@ class Downvoted(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='downvoted', null=False)
     def __str__(self):
         return self.user.username
+
+

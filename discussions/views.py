@@ -2,7 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from discussions.models import Discussion,Comments, Upvoted, Downvoted
-from discussions.serializers import DiscussionSerializer, CommentSerializer, UpvotedSerializer, DownvotedSerializer
+from discussions.serializers import DiscussionSerializer, \
+     CommentSerializer, UpvotedSerializer, DownvotedSerializer
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from rest_framework import generics
@@ -85,7 +86,9 @@ class DiscussionViewSet(viewsets.ModelViewSet):
                 hash = data.get('hash'),
                 discussion_id = discussion.id,
                 user = request.user,
-                parent = data.get('parent')
+                parent = data.get('parent'),
+                upvotes = 0,
+                downvotes = 0
             )
 
         serializer = CommentSerializer(comment_)
@@ -152,6 +155,9 @@ class DiscussionViewSet(viewsets.ModelViewSet):
         downvoted.delete()
         ret = {'message': 'downvote deleted'}
         return Response(ret,status=status.HTTP_200_OK)
+
+    
+
 
 class DiscussionMineList(generics.ListAPIView):
     serializer_class = DiscussionSerializer
