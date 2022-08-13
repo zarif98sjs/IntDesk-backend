@@ -68,22 +68,17 @@ class ProblemSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = Problem
-        fields = '__all__'
+        # fields = '__all__'
         fields = (
-             'id',
-             'input_outputs', 
-             'companies',
-              'subcategories', 
-              'roles', 
-              'name', 'description',
-             'time_limit', 'memory_limit', 'difficulty', 'submission_count', 'solve_count'
+            'id',
+            'input_outputs', 
+            'companies',
+            'subcategories', 
+            'roles', 
+            'name', 'description',
+            'time_limit', 'memory_limit', 'difficulty', 'submission_count', 'solve_count'
         )
 
-    # def to_representation(self, instance):
-    #     '''Convert compnay, roles, subcategories to list'''
-    #     ret = super().to_representation(instance)
-    #     ret['companies'] = [x.name for x in instance.companies]
-    #     return ret
 
     
 
@@ -92,7 +87,12 @@ class BookMarkSerializer(DynamicFieldsModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = BookMark
-        fields = '__all__'
+        fields = (
+            'id',
+            'date_added',
+            'user',
+            'problem'
+        )
         
 
 
@@ -102,7 +102,16 @@ class SolutionSerializer(DynamicFieldsModelSerializer):
     
     class Meta:
         model = Solution
-        fields = '__all__'
+        fields = (
+            'id',
+            'code',
+            'language',
+            'runtime',
+            'memory_usage',
+            'solve_status',
+            'problem',
+            'user'
+        )
 
         
 
