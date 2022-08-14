@@ -1,15 +1,17 @@
 from django import views
-from rest_framework import viewsets, status
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from problems.models import Company, Role, Category, SubCategory, Problem, \
-    InputOutput, BookMark, Solution
-from problems.serializers import CompanySerializer, RoleSerializer, \
-    CategorySerializer, SubCategorySerializer, ProblemSerializer, \
-    InputOutputSerializer, BookMarkSerializer, SolutionSerializer
-from django.shortcuts import get_object_or_404
-from django.db import transaction
+from problems.models import (BookMark, Category, Company, InputOutput, Problem,
+                             Role, Solution, SubCategory)
+from problems.serializers import (BookMarkSerializer, CategorySerializer,
+                                  CompanySerializer, InputOutputSerializer,
+                                  ProblemSerializer, RoleSerializer,
+                                  SolutionSerializer, SubCategorySerializer)
+
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all()
@@ -40,13 +42,24 @@ class ProblemViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         data = request.data
         problem = get_object_or_404(Problem, pk=kwargs['pk'])
-        if data.get('name') is not None: problem.name = data['name']
+        if data.get('title') is not None: problem.name = data['title']
         if data.get('description') is not None: problem.description = data['description']
         if data.get('time_limit') is not None: problem.time_limit = data['time_limit']
         if data.get('memory_limit') is not None: problem.memory_limit = data['memory_limit']
         if data.get('difficulty') is not None: problem.difficulty = data['difficulty']
         if data.get('submission_count') is not None: problem.submission_count = data['submission_count']
         if data.get('solve_count') is not None: problem.solve_count = data['solve_count']
+        # for role in problem.roles.all():
+        #     problem.roles.remove(role)
+        # for subcategory in problem.subcategories.all():
+        #     problem.subcategories.remove(subcategory)
+        # for company in problem.companies.all():
+        #     problem.companies.remove(company)
+        
+        # for input_output in problem.input_outputs.all():
+        #     # problem.input_outputs.remove(input_output)
+        #     input_output.delete()
+
         problem.save()
         serializer = ProblemSerializer(problem)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
