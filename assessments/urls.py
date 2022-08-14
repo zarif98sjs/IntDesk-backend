@@ -9,5 +9,5 @@ router.register('assessment', AssessmentViewSet)
 
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
 ]
