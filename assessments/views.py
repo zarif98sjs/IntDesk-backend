@@ -15,7 +15,7 @@ def get_difficulty( request ):
     # print("inside difficulty function")
     # print(request.data)
     available_difficulty = ['E', 'M', 'H']
-    limit = 5
+    limit = 2
     if request.data['E'] >= limit :
         available_difficulty.remove('E')
     if request.data['M'] >= limit :
@@ -202,13 +202,13 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     ## get a random question of an assessment
     @action(detail=True, methods=['POST'])
     def questions(self, request, pk=None):
-        print(request.data)
+        # print(request.data)
         ids = request.data['quesID']
         assess = get_object_or_404(Assessment, pk=pk)
         chosen_difficulty = get_difficulty(request)
-        print(chosen_difficulty)
+        # print(chosen_difficulty)
         questions = assess.question.filter( difficulty_level = chosen_difficulty ).exclude(id__in=[x for x in ids if x is not None])
-        print( len( questions ) )
+        # print( len( questions ) )
         # questions = assess.question.all()
         question = questions.order_by("?").first()
         serializer = QuestionSerializer(question)
@@ -247,7 +247,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         option = get_object_or_404(Option, pk = data['option_id']) 
         ques_option = QuesOption.objects.filter(question = question, option = option)
         ques_option_serializer = QuesOptionSerializer(ques_option, many = True)
-        print(ques_option_serializer.data)
+        # print(ques_option_serializer.data)
         return Response( ques_option_serializer.data[0]['is_correct'] )
 
     # check if assessment is passed
@@ -256,8 +256,9 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         data = request.data
         print(data)
         if (data['points'] * 100.0 / data['total_points'] >= pass_percentage):
+            print("Passed")
             return Response("Passed")
-
+        print("Failed")
         return Response("Failed")
 
 
