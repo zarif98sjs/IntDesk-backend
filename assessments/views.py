@@ -10,7 +10,7 @@ import random
 import datetime
 
 # Create your views here.
-pass_percentage = 80
+pass_percentage = 70.0
 
 def get_difficulty( request ):
     # print("inside difficulty function")
@@ -174,31 +174,37 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         serializer = AssessmentSerializer(assessment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    ## delete question
-    @action(detail=True, methods=['DELETE'])
-    def delete_question(self, request,pk=None):
-        ques = get_object_or_404(Question,pk=pk)
-        # ques_options = QuesOption.objects.filter(question = ques)
-        # ques_option_serializer = QuesOptionSerializer(ques_options, many=True)
-        # # print(ques_option_serializer.data)
-        # ques_option_data = ques_option_serializer.data
-        # for per_ques_opt in ques_option_data:
-        #     # print(per_ques_opt['option_id'])
-        #     option = get_object_or_404(Option,pk = per_ques_opt['option_id']) 
-        #     print(option)
-        #     option.delete()
-        # ques_options.delete()
-        ques.delete()
-        # ques.delete()
-        ret = {'message': 'question deleted'}
-        return Response(ret,status=status.HTTP_200_OK)
-
     ## get all assessments
     @action(detail=True, methods=['get'])
     def assessments(self, request, pk=None):
         assessments = Assessment.objects.all()
         serializer = AssessmentSerializer(assessments, many=True)
         return Response(serializer.data)
+
+    # get user status on an assessment
+    @action(detail=True, methods=['get'])
+    def get_user_status(self, request, pk=None):
+        user_assessment = UserAssessment.objects.filter(user=self.request.user, assessment = pk)
+        if user_assessment.exists():
+            # print(user_assessment)
+            user_assess_serializer = UserAssessmentSerializer(user_assessment[0])
+            if user_assess_serializer.data['passed'] == True:
+                return Response("passed")
+            else:
+                return Response(user_assess_serializer.data['taken_time'])
+        
+        return Response("not taken")
+
+    ## delete question
+    @action(detail=True, methods=['DELETE'])
+    def delete_question(self, request,pk=None):
+        ques = get_object_or_404(Question,pk=pk)
+        ques.delete()
+        # ques.delete()
+        ret = {'message': 'question deleted'}
+        return Response(ret,status=status.HTTP_200_OK)
+
+   
 
     ## get a random question of an assessment
     @action(detail=True, methods=['POST'])
@@ -256,23 +262,27 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     def assessment_result(self,request,pk):
         data = request.data
         user = request.user
-        print(user)
-        print(data)
+        print("called assessresult")
         assessment_given = get_object_or_404(Assessment, pk=data['assessment'] )
-
-        userassessment = UserAssessment.objects.create(
+        print(assessment_given)
+        userassessment = UserAssessment.objects.get_or_create(
             assessment = assessment_given,
             user = request.user
         )
-
+        # print(type(userassessment))
+        # print(len(userassessment))
+        print(userassessment)
+        userassessment = userassessment[0]
+        print("get or create called too ")
         userassessment.passed_by = False
         userassessment.taken_by = datetime.datetime.now()
-        
+        userassessment.save()
         
         if (data['points'] * 100.0 / data['total_points'] >= pass_percentage):
-            userassessment.passed_by = True
+            userassessment.passed = True
             # serializer = UserAssessmentSerializer(userassessment)  
             # print(serializer.data)
+            userassessment.save()
             return Response("Passed")
 
         # serializer = UserAssessmentSerializer(userassessment)  
@@ -280,20 +290,36 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         return Response("Failed")
         
 
+   
 
 
-
-    # ## get all questions of an assessment
-    # @action(detail=True, methods=['get'])
-    # def ques_options(self, request, pk=None):
-    #     question = get_object_or_404(Question, pk=pk)
-    #     ques_options = QuesOption.objects.
-    #     serializer = QuestionSerializer(questions, many=True)
-    #     print(serializer.data)
-    #     return Response(serializer.data)
-
+class AssessmentMineList(generics.ListAPIView):
+    # queryset = UserAssessment.objects.all()
+    serializer_class = UserAssessmentSerializer
 
     
+    def get_queryset(self):
+        # user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
+        # print(user_taken_assess)
+        # # # user_taken_assess.delete()
+        # user_taken_assess_serializer = UserAssessmentSerializer(user_taken_assess, many = True) 
+        # print("Hello")
+        # print(user_taken_assess_serializer.data)
+        # print("Bye")
+        # print(user_taken_assess.values_list('assessment', flat=True) )
+        # taken_assessments = Assessment.objects.filter(pk__in = user_taken_assess.values_list('assessment', flat=True) ).all()
+        # # taken_assessments = Assessment.objects.get( pk = user_taken_assess_serializer.data[:]['assessment'], many = True)
+        # taken_assessments_serializer = AssessmentSerializer(taken_assessments, many = True)
+        # print(taken_assessments_serializer.data)
+        return UserAssessment.objects.filter(user=self.request.user)
+    
+    # # # Delete taken assessments of a user
+    # @action(detail=True, methods=['DELETE'])
+    # def delete(self, request):
+    #     user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
+    #     user_taken_assess.delete()
+    #     return Response('deleted')
+        
     
 
     
