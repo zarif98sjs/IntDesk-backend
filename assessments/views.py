@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from rest_framework import generics
 import random
+import datetime
 
 # Create your views here.
 pass_percentage = 80
@@ -254,12 +255,30 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['POST'])
     def assessment_result(self,request,pk):
         data = request.data
+        user = request.user
+        print(user)
         print(data)
+        assessment_given = get_object_or_404(Assessment, pk=data['assessment'] )
+
+        userassessment = UserAssessment.objects.create(
+            assessment = assessment_given,
+            user = request.user
+        )
+
+        userassessment.passed_by = False
+        userassessment.taken_by = datetime.datetime.now()
+        
+        
         if (data['points'] * 100.0 / data['total_points'] >= pass_percentage):
-            print("Passed")
+            userassessment.passed_by = True
+            # serializer = UserAssessmentSerializer(userassessment)  
+            # print(serializer.data)
             return Response("Passed")
-        print("Failed")
+
+        # serializer = UserAssessmentSerializer(userassessment)  
+        # print(serializer.data)
         return Response("Failed")
+        
 
 
 
