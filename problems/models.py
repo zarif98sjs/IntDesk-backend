@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils.timezone import now
 
 class Company(models.Model):
     name = models.CharField(max_length=100)
@@ -80,17 +81,13 @@ class BookMark(models.Model):
 
 class Solution(models.Model):
     code = models.TextField()
-    language = models.CharField(max_length=20, default="c", choices=[
-        ("c", "c"), ("cpp", "cpp"), ("java", "java"), ("python", "python")])
+    language = models.CharField(max_length=20, default="c")
     runtime = models.CharField(max_length=20)
     memory_usage = models.CharField(max_length=20)
     solve_status = models.CharField(
-        max_length=50, default="Pending", choices=[("Pending", "Pending"), ("Accepted", "Accepted"), 
-        ("Wrong Answer", "Wrong Answer"), ("Time Limit Exceeded", "Time Limit Exceeded"), 
-        ("Memory Limit Exceeded", "Memory Limit Exceeded"), ("Runtime Error", "Runtime Error"), 
-        ("Compile Error", "Compile Error")]
+        max_length=50, default="Pending"
     )
-    
+    time_added = models.DateTimeField(default=now, editable=False)
     # one to many relations
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='solutions')

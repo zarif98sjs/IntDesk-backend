@@ -110,7 +110,8 @@ class SolutionSerializer(DynamicFieldsModelSerializer):
             'memory_usage',
             'solve_status',
             'problem',
-            'user'
+            'user',
+            'time_added'
         )
 
         
