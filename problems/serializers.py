@@ -24,26 +24,26 @@ class CompanySerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = Company
-        fields = ('name', 'description')
+        fields = ('id', 'name', 'description')
 
 
 class RoleSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Role
-        fields = '__all__'
+        fields = ('id', 'name', 'description')
 
 
 class CategorySerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ('id', 'name', 'description')
 
 
 class SubCategorySerializer(DynamicFieldsModelSerializer):
     category = CategorySerializer(read_only=True)
     class Meta:
         model = SubCategory
-        fields = '__all__'
+        fields = ('id', 'category', 'name', 'description')
         extra_kwargs = {
             'category': {"required": True}
         }
@@ -69,10 +69,16 @@ class ProblemSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Problem
         # fields = '__all__'
-        fields = [
-            'input_outputs', 'companies', 'subcategories', 'roles', 'name', 'description',
+        fields = (
+            'id',
+            'input_outputs', 
+            'companies',
+            'subcategories', 
+            'roles', 
+            'name', 'description',
             'time_limit', 'memory_limit', 'difficulty', 'submission_count', 'solve_count'
-        ]
+        )
+
 
     
 
@@ -81,7 +87,12 @@ class BookMarkSerializer(DynamicFieldsModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = BookMark
-        fields = '__all__'
+        fields = (
+            'id',
+            'date_added',
+            'user',
+            'problem'
+        )
         
 
 
@@ -91,7 +102,16 @@ class SolutionSerializer(DynamicFieldsModelSerializer):
     
     class Meta:
         model = Solution
-        fields = '__all__'
+        fields = (
+            'id',
+            'code',
+            'language',
+            'runtime',
+            'memory_usage',
+            'solve_status',
+            'problem',
+            'user'
+        )
 
         
 

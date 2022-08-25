@@ -1,15 +1,17 @@
 from django import views
-from rest_framework import viewsets, status
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from problems.models import Company, Role, Category, SubCategory, Problem, \
-    InputOutput, BookMark, Solution
-from problems.serializers import CompanySerializer, RoleSerializer, \
-    CategorySerializer, SubCategorySerializer, ProblemSerializer, \
-    InputOutputSerializer, BookMarkSerializer, SolutionSerializer
-from django.shortcuts import get_object_or_404
-from django.db import transaction
+from problems.models import (BookMark, Category, Company, InputOutput, Problem,
+                             Role, Solution, SubCategory)
+from problems.serializers import (BookMarkSerializer, CategorySerializer,
+                                  CompanySerializer, InputOutputSerializer,
+                                  ProblemSerializer, RoleSerializer,
+                                  SolutionSerializer, SubCategorySerializer)
+
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all()
@@ -20,14 +22,16 @@ class ProblemViewSet(viewsets.ModelViewSet):
         data = request.data
         print(data)
         problem = Problem.objects.create(
-            name=data['name'],
+            name=data['title'],
             description=data['description'],
             time_limit=data['time_limit'],
             memory_limit=data['memory_limit'],
             difficulty=data['difficulty'],
-            submission_count=data['submission_count'],
-            solve_count=data['solve_count']
+            
         )
+        if data.get('submission_count') is not None: problem.submission_count = data['submission_count']
+        if data.get('solve_count') is not None: problem.solve_count = data['solve_count']
+        problem.save()
 
         serializer = ProblemSerializer(problem)
 
@@ -38,13 +42,24 @@ class ProblemViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         data = request.data
         problem = get_object_or_404(Problem, pk=kwargs['pk'])
-        if data.get('name') is not None: problem.name = data['name']
+        if data.get('title') is not None: problem.name = data['title']
         if data.get('description') is not None: problem.description = data['description']
         if data.get('time_limit') is not None: problem.time_limit = data['time_limit']
         if data.get('memory_limit') is not None: problem.memory_limit = data['memory_limit']
         if data.get('difficulty') is not None: problem.difficulty = data['difficulty']
         if data.get('submission_count') is not None: problem.submission_count = data['submission_count']
         if data.get('solve_count') is not None: problem.solve_count = data['solve_count']
+        # for role in problem.roles.all():
+        #     problem.roles.remove(role)
+        # for subcategory in problem.subcategories.all():
+        #     problem.subcategories.remove(subcategory)
+        # for company in problem.companies.all():
+        #     problem.companies.remove(company)
+        
+        # for input_output in problem.input_outputs.all():
+        #     # problem.input_outputs.remove(input_output)
+        #     input_output.delete()
+
         problem.save()
         serializer = ProblemSerializer(problem)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -83,67 +98,98 @@ class ProblemViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     
-    # add a new company to problem
+    # add a list of companies to problem
     @action(detail=True, methods=['POST'])
     def company(self, request, pk):
         problem = get_object_or_404(Problem, pk=pk)
         data = request.data
         
-        if data.get('name') is None:
-            raise ValueError("company name is required")
+        if data.get('companies') is None:
+            raise ValueError("company list is required")
 
-        company, created = Company.objects.get_or_create(name=data.get('name'), description=data.get('description'))
+        companies_list = data.get('companies')
+
+        for company_obj in companies_list:
+            if company_obj.get('company') is None or company_obj.get('company') == '':
+                continue
+            company, created = Company.objects.get_or_create(name=company_obj.get('company').capitalize())
+            if company_obj.get('description') is not None:
+                company.description = company_obj.get('description')
+
+            company.save()
+            problem.companies.add(company) # need to do this specially for many to many relations
         
-        company.save()
-        problem.companies.add(company)
-        serializer = CompanySerializer(company)
+        serializer = ProblemSerializer(problem)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # add a new role to problem
+    # add a list of roles to problem
     @action(detail=True, methods=['POST'])
     def role(self, request, pk):
         problem = get_object_or_404(Problem, pk=pk)
         data = request.data
-        
-        if data.get('name') is None:
-            raise ValueError("role name is required")
+        if data.get('roles') is None:
+            raise ValueError("role list is required")
 
-        role, created = Role.objects.get_or_create(name=data.get('name'), description=data.get('description'))
+        role_list = data.get('roles')
+        for role_obj in role_list:
+
+            if role_obj.get('role') is None or role_obj.get('role') == '':
+                continue
+            
+            role, created = Role.objects.get_or_create(name=role_obj.get('role').capitalize())
         
-        role.save()
-        problem.roles.add(role)
-        serializer = RoleSerializer(role)
+            if role_obj.get('description') is not None:
+                role.description = role_obj.get('description')
+            
+            role.save()
+            problem.roles.add(role)
+        
+        serializer = ProblemSerializer(problem)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # add a new subcategory to problem
+
+    # add a list of subcategories to problem
     @action(detail=True, methods=['POST'])
     def subcategory(self, request, pk):
+
         problem = get_object_or_404(Problem, pk=pk)
         data = request.data
 
+        
+        if data.get('subcategories') is None:
+            raise ValueError("subcategory list is required")
+        
+        subcategory_list = data.get('subcategories')
+
+        for subcategory_obj in subcategory_list:
+
+            if subcategory_obj.get('category') is None or subcategory_obj.get('category') == '':
+                continue
+            
+            if subcategory_obj.get('subcategory') is None or subcategory_obj.get('subcategory') == '':
+                continue
+            
+
+            category, created = Category.objects.get_or_create(name=subcategory_obj.get('category'))
+        
+            if subcategory_obj.get("category_description") is not None:
+                category.description = subcategory_obj.get('category_description')
+            category.save()
+
+            subcategory, created = SubCategory.objects.get_or_create(name=subcategory_obj.get('subcategory'), category=category)
+        
+            if subcategory_obj.get("description") is not None:
+                subcategory.description = subcategory_obj.get('description')
+            subcategory.save()
+            problem.subcategories.add(subcategory)
+        
         serializer = ProblemSerializer(problem)
         
-        if data.get('category') is None:
-            raise ValueError("category name is required")
-        elif data.get('name') is None:
-            raise ValueError("sub_category name is required")
-
-
-        category, created = Category.objects.get_or_create(name=data.get('category'))
-        if data.get("category_description") is not None:
-            category.description = data.get('category_description')
-        category.save()
-
-        subcategory, created = SubCategory.objects.get_or_create(name=data.get('name'), category=category)
-        if data.get("description") is not None:
-            subcategory.description = data.get('description')
-        subcategory.save()
-        problem.subcategories.add(subcategory)
-        serializer = SubCategorySerializer(subcategory)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-    ## add new input-output files to a problem
+    ## add a list of input-output files to a problem
     @action(detail=True, methods=['POST'])
     def input_output(self, request, pk):
 
@@ -151,19 +197,29 @@ class ProblemViewSet(viewsets.ModelViewSet):
         problem = get_object_or_404(Problem, pk=pk)
         data = request.data
         
-        if data.get('input') is None:
-            raise ValueError("input file is required")
-        if data.get('output') is None:
-            raise ValueError("output file is required")
+        if data.get('input_outputs') is None:
+            raise ValueError("input output list is required")
+        
+        input_output_list = data.get('input_outputs')
 
-        input_output = InputOutput.objects.create(
-            input=data.get('input'),
-            output=data.get('output'),
-            points = data.get('points'),
-            problem = problem
-        )
+        for io_obj in input_output_list:
 
-        input_output.save()
-        serializer = InputOutputSerializer(input_output)
+            if io_obj.get('input') is None or io_obj.get('input') == '':
+                continue
+            
+            elif io_obj.get('output') is None or io_obj.get('output') == '':
+                continue
+            
+
+            input_output = InputOutput.objects.create(
+                input=io_obj.get('input'),
+                output=io_obj.get('output'),
+                points = io_obj.get('points'),
+                problem = problem
+            )
+
+            input_output.save()
+        
+        serializer = ProblemSerializer(problem)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
