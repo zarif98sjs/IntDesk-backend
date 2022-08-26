@@ -1,3 +1,4 @@
+from cgitb import lookup
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -50,24 +51,6 @@ class UserViewSet(viewsets.ModelViewSet):
   serializer_class = UserSerializer
   authentication_classes = (TokenAuthentication,)
   permission_classes = (AllowAny,)
+  lookup_field = 'username'
   
-  # ## put request to update the discussion
-  # @transaction.atomic
-  # def update(self, request, *args, **kwargs):
-  #   data = request.data
-  #   user = get_object_or_404(User, pk=kwargs['pk'])
-  #   if data.get('username') is not None : user.username = data['username']
-  #   if data.get('email') is not None : user.email = data['email']
-  #   if data.get('first_name') is not None : user.first_name = data['first_name']
-  #   if data.get('last_name') is not None : user.last_name = data['last_name']
-  #   if data.get('password') is not None : user.password = data['password']
-  #   if data.get('city') is not None : user.city = data['city']
-  #   if data.get('country') is not None : user.country = data['country']
-  #   if data.get('about') is not None : user.about = data['about']
-  #   if data.get('occupation') is not None : user.occupation = data['occupation']
-  #   if data.get('current_workplace') is not None : user.current_workplace = data['current_workplace']
-  #   if data.get('website_link') is not None : user.website_link = data['website_link']
-  #   if data.get('github_link') is not None : user.github_link = data['github_link']
-  #   user.save()
-  #   serializer = UserSerializer(user)
-  #   return Response(serializer.data, status=status.HTTP_200_OK)
+
