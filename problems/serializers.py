@@ -85,11 +85,13 @@ class ProblemSerializer(DynamicFieldsModelSerializer):
 class BookMarkSerializer(DynamicFieldsModelSerializer):
     problem = ProblemSerializer(read_only=True)
     user = UserSerializer(read_only=True)
+    time_added = serializers.DateTimeField(format="%Y-%m-%d-%H:%M:%S")
+
     class Meta:
         model = BookMark
         fields = (
             'id',
-            'date_added',
+            'time_added',
             'user',
             'problem'
         )
@@ -99,7 +101,8 @@ class BookMarkSerializer(DynamicFieldsModelSerializer):
 class SolutionSerializer(DynamicFieldsModelSerializer):
     problem = ProblemSerializer(read_only=True)
     user = UserSerializer(read_only=True)
-    
+    time_added = serializers.DateTimeField(format="%Y-%m-%d-%H:%M:%S")
+
     class Meta:
         model = Solution
         fields = (

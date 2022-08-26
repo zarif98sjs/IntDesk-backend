@@ -14,7 +14,7 @@ from problems.serializers import (BookMarkSerializer, CategorySerializer,
 
 
 class ProblemViewSet(viewsets.ModelViewSet):
-    queryset = Problem.objects.all()
+    queryset = Problem.objects.all().order_by('-id')
     serializer_class = ProblemSerializer
 
     @transaction.atomic
@@ -228,6 +228,12 @@ class ProblemViewSet(viewsets.ModelViewSet):
     def solution(self, request, pk):
         problem = get_object_or_404(Problem, pk=pk)
         data = request.data
+
+        problem.submission_count += 1
+        if(data.get('status') == "Accepted"):
+            problem.solve_count += 1
+        
+        problem.save()
         
         solution = Solution.objects.create(
             code = data.get('code'),
@@ -242,5 +248,60 @@ class ProblemViewSet(viewsets.ModelViewSet):
         serializer = SolutionSerializer(solution)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    
 
+    ## get all solutions of a problem
+    @action(detail=True, methods=['GET'])
+    def solutions(self, request, pk):
+        print(request.user)
+        problem = get_object_or_404(Problem, pk=pk)
+        solution = problem.solutions.all().filter(user=request.user).order_by('-time_added')
+        serializer = SolutionSerializer(solution, many=True)
+        return Response(serializer.data)
+
+
+    ## get the latest solution
+    @action(detail=True, methods=['GET'])
+    def latest_solution(self, request, pk):
+        print(request.user)
+        problem = get_object_or_404(Problem, pk=pk)
+        solution = problem.solutions.all().filter(user=request.user).order_by('-time_added').first()
+        serializer = SolutionSerializer(solution)
+        return Response(serializer.data)
+
+    # check for bookmark
+    @action(detail=True, methods=['GET'])
+    def check_bookmark(self, request, pk):
+        problem = get_object_or_404(Problem, pk=pk)
+        bookmark = problem.bookmarks.all().filter(user=request.user).first()
+        serializer = BookMarkSerializer(bookmark)
+        return Response(serializer.data)
+
+
+    ## add bookmark to a problem
+    @action(detail=True, methods=['POST'])
+    def bookmark(self, request, pk):
+        problem = get_object_or_404(Problem, pk=pk)
+        
+        bookmark, created = BookMark.objects.get_or_create(
+            user = request.user,
+            problem = problem
+        )
+
+        serializer = BookMarkSerializer(bookmark)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    ## delete bookmark from a problem
+    @action(detail=True, methods=['DELETE'])
+    def delete_bookmark(self, request, pk):
+        problem = get_object_or_404(Problem, pk=pk)
+        
+        bookmark = BookMark.objects.get(
+            user = request.user,
+            problem = problem
+        )
+
+        bookmark.delete()
+        ret = {'message': 'bookmark deleted'}
+        return Response(ret, status=status.HTTP_200_OK)
+    
+    
