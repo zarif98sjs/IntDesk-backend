@@ -8,6 +8,7 @@ from django.db import transaction
 from rest_framework import generics
 import random
 import datetime
+from users.models import User
 
 # Create your views here.
 pass_percentage = 70.0
@@ -93,8 +94,6 @@ class AssessmentViewSet(viewsets.ModelViewSet):
             image_link = data['image_link'],
             # roles = data['roles']
         )
-        
-
         # if data.get('roles') is None:
         #     serializer = AssessmentSerializer(assessment)
         #     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -180,6 +179,32 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         assessments = Assessment.objects.all()
         serializer = AssessmentSerializer(assessments, many=True)
         return Response(serializer.data)
+
+    # get recommended assessments
+    @action(detail=False, methods=['get'])
+    def get_recommended(self, request):
+        user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
+        ids = user_taken_assess.values_list('assessment', flat=True) 
+        not_taken_assessments = Assessment.objects.exclude(id__in=[x for x in ids if x is not None])
+        taken_assessments = Assessment.objects.filter(pk__in = user_taken_assess.values_list('assessment', flat=True) ).all()
+        # print(taken_assessments )
+        taken_assess_serializer = AssessmentSerializer( taken_assessments, many = True)
+        # print( type( taken_assess_serializer.data ) )
+        roles_list = []
+        for i in range( len( taken_assess_serializer.data ) ):
+            for role in taken_assess_serializer.data[i]['roles']:
+                if role['name'] not in roles_list:
+                    roles_list.append(role['id'])
+        print(roles_list)
+        recommended_assessments = not_taken_assessments.filter( roles__in = roles_list ) 
+        recommended_assess_serializer = AssessmentSerializer( recommended_assessments, many = True)
+        # print( recommended_assess_serializer.data )
+        user = request.user
+        # print(user.skills)
+        # user = User(request.user)
+        # serializer = AssessmentSerializer(not_taken_assessments, many=True)
+        # print(serializer.data)
+        return Response(recommended_assess_serializer.data)
 
     # get user status on an assessment
     @action(detail=True, methods=['get'])
