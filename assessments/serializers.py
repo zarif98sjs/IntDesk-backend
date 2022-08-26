@@ -49,7 +49,7 @@ class AssessmentSerializer(DynamicFieldsModelSerializer):
 
     roles = RoleSerializer(many=True)
     categories = CategorySerializer(many=True)
-    question = QuestionSerializer( many = True )
+    # question = QuestionSerializer( many = True )
 
     class Meta:
         model = Assessment
@@ -65,9 +65,12 @@ class AssessmentSerializer(DynamicFieldsModelSerializer):
 
 class UserAssessmentSerializer(DynamicFieldsModelSerializer):
     user = UserSerializer(read_only=True)
+    assessment = AssessmentSerializer( read_only=True)
+
     class Meta:
         model = UserAssessment
         fields = '__all__'
+        unique_together = (("user", "assessment"),)
         extra_kwargs = {
             'user': {'required': True},
             'assessment' : {'required': True},

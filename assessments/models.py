@@ -1,6 +1,7 @@
 from django.db import models
 from problems.models import Role, SubCategory, Category
 from django.conf import settings
+from django.utils.timezone import now
 
 
 class Assessment(models.Model):
@@ -63,3 +64,5 @@ class QuesOption(models.Model):
 class UserAssessment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='taken_assessment', null=True)
     assessment = models.ForeignKey(Assessment, on_delete = models.CASCADE, related_name='taken_assessment')
+    taken_time = models.DateTimeField(default=now, editable=False)
+    passed = models.BooleanField(default = False)

@@ -49,16 +49,16 @@ class ProblemViewSet(viewsets.ModelViewSet):
         if data.get('difficulty') is not None: problem.difficulty = data['difficulty']
         if data.get('submission_count') is not None: problem.submission_count = data['submission_count']
         if data.get('solve_count') is not None: problem.solve_count = data['solve_count']
-        # for role in problem.roles.all():
-        #     problem.roles.remove(role)
-        # for subcategory in problem.subcategories.all():
-        #     problem.subcategories.remove(subcategory)
-        # for company in problem.companies.all():
-        #     problem.companies.remove(company)
+        for role in problem.roles.all():
+            problem.roles.remove(role)
+        for subcategory in problem.subcategories.all():
+            problem.subcategories.remove(subcategory)
+        for company in problem.companies.all():
+            problem.companies.remove(company)
         
-        # for input_output in problem.input_outputs.all():
-        #     # problem.input_outputs.remove(input_output)
-        #     input_output.delete()
+        for input_output in problem.input_outputs.all():
+            # problem.input_outputs.remove(input_output)
+            input_output.delete()
 
         problem.save()
         serializer = ProblemSerializer(problem)
@@ -223,3 +223,24 @@ class ProblemViewSet(viewsets.ModelViewSet):
         serializer = ProblemSerializer(problem)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    ## add a solution to a problem
+    @action(detail=True, methods=['POST'])
+    def solution(self, request, pk):
+        problem = get_object_or_404(Problem, pk=pk)
+        data = request.data
+        
+        solution = Solution.objects.create(
+            code = data.get('code'),
+            language = data.get('language'),
+            runtime = data.get('time'),
+            memory_usage = data.get('memory'),
+            solve_status = data.get('status'),
+            user = request.user,
+            problem = problem
+        )
+
+        serializer = SolutionSerializer(solution)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
+
