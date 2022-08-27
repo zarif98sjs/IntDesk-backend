@@ -9,7 +9,7 @@ from users.models import User
 class UserSerializer(serializers.ModelSerializer):
   class Meta:
     model = User
-    fields = ["id", "first_name", "last_name", "email", "username", "city", "country", "about", "occupation", "current_workplace", "website_link", "github_link", "languages", "skills"]
+    fields = ["id", "first_name", "last_name", "email", "username", "city", "country", "about", "occupation", "current_workplace", "website_link", "github_link", "languages", "skills", "is_admin"]
 
 #Serializer to Register User
 class RegisterSerializer(serializers.ModelSerializer):
@@ -49,7 +49,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data['email'],
             first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
+            last_name=validated_data['last_name'],
+            is_admin=False
         )
 
         user.set_password(validated_data['password'])

@@ -1,7 +1,8 @@
+
 from django import views
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -252,21 +253,21 @@ class ProblemViewSet(viewsets.ModelViewSet):
     ## get all solutions of a problem
     @action(detail=True, methods=['GET'])
     def solutions(self, request, pk):
-        print(request.user)
+        
         problem = get_object_or_404(Problem, pk=pk)
         solution = problem.solutions.all().filter(user=request.user).order_by('-time_added')
         serializer = SolutionSerializer(solution, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
     ## get the latest solution
     @action(detail=True, methods=['GET'])
     def latest_solution(self, request, pk):
-        print(request.user)
+        
         problem = get_object_or_404(Problem, pk=pk)
         solution = problem.solutions.all().filter(user=request.user).order_by('-time_added').first()
         serializer = SolutionSerializer(solution)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # check for bookmark
     @action(detail=True, methods=['GET'])
@@ -274,7 +275,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
         problem = get_object_or_404(Problem, pk=pk)
         bookmark = problem.bookmarks.all().filter(user=request.user).first()
         serializer = BookMarkSerializer(bookmark)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
     ## add bookmark to a problem
@@ -303,5 +304,22 @@ class ProblemViewSet(viewsets.ModelViewSet):
         bookmark.delete()
         ret = {'message': 'bookmark deleted'}
         return Response(ret, status=status.HTTP_200_OK)
+
+
+
+class ProblemMineList(generics.ListAPIView):
+    serializer_class = ProblemSerializer
+
+    def get_queryset(self):
+        problem_list = Solution.objects.filter(user=self.request.user).values_list('problem').distinct()
+        problems = Problem.objects.filter(pk__in=problem_list)
+        return problems
     
     
+class BookMarkMineList(generics.ListAPIView):
+    serializer_class = ProblemSerializer
+
+    def get_queryset(self):
+        problem_list = BookMark.objects.filter(user=self.request.user).values_list('problem').distinct()
+        problems = Problem.objects.filter(pk__in=problem_list)
+        return problems
