@@ -1,4 +1,5 @@
 
+from operator import ne
 from django import views
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -323,3 +324,26 @@ class BookMarkMineList(generics.ListAPIView):
         problem_list = BookMark.objects.filter(user=self.request.user).values_list('problem').distinct()
         problems = Problem.objects.filter(pk__in=problem_list)
         return problems
+
+
+class PopularProblemList(generics.ListAPIView):
+    serializer_class = ProblemSerializer
+
+    def get_queryset(self):
+        problems = Problem.objects.order_by('-submission_count', '-solve_count', '-id')
+        return problems[:5]
+
+class RecommendedProblemList(generics.ListAPIView):
+    serializer_class = ProblemSerializer
+
+    def get_queryset(self):
+        problem_list = Solution.objects.filter(user=self.request.user).values_list('problem').distinct()
+        problems = Problem.objects.filter(pk__in=problem_list)
+        subcategory_list = problems.values_list('subcategories').distinct()
+        role_list = problems.values_list('roles').distinct()
+        new_problems = Problem.objects.exclude(pk__in=problem_list)
+        subcategory_match = new_problems.filter(subcategories__in=subcategory_list)
+        role_match = new_problems.filter(roles__in=role_list)
+        recommendations = subcategory_match.union(role_match)[:5]
+        
+        return recommendations
