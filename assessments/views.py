@@ -63,7 +63,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     def options(self, request, pk):
         
         data = request.data
-        # print(data)
+        print(data)
         question = get_object_or_404(Question, pk=data['ques'])
         option = Option.objects.create(
             description = data['option_description'],
