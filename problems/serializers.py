@@ -54,7 +54,7 @@ class InputOutputSerializer(DynamicFieldsModelSerializer):
     
     class Meta:
         model = InputOutput
-        fields = ('id', 'problem_id', 'input', 'output', 'points')
+        fields = ('id', 'problem_id', 'input', 'output', 'points', 'description')
 
 
 class ProblemSerializer(DynamicFieldsModelSerializer):
@@ -64,7 +64,7 @@ class ProblemSerializer(DynamicFieldsModelSerializer):
     subcategories = SubCategorySerializer(many=True)
     
     # a list of inputoutputs
-    input_outputs = InputOutputSerializer(many=True, fields=('input', 'output', 'points'))
+    input_outputs = InputOutputSerializer(many=True, fields=('input', 'output', 'points', 'description'))
 
 
     class Meta:

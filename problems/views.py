@@ -1,5 +1,6 @@
 
 from operator import ne
+
 from django import views
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -220,6 +221,9 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 problem = problem
             )
 
+            if io_obj.get('description') is not None:
+                input_output.description = io_obj.get('description')
+
             input_output.save()
         
         serializer = ProblemSerializer(problem)
@@ -307,15 +311,31 @@ class ProblemViewSet(viewsets.ModelViewSet):
         return Response(ret, status=status.HTTP_200_OK)
 
 
+    
+    
 
-class ProblemMineList(generics.ListAPIView):
+    
+
+
+
+class SolvedMineList(generics.ListAPIView):
     serializer_class = ProblemSerializer
 
     def get_queryset(self):
-        problem_list = Solution.objects.filter(user=self.request.user).values_list('problem').distinct()
+        problem_list = Solution.objects.filter(user=self.request.user, solve_status="Accepted").values_list('problem').distinct()
         problems = Problem.objects.filter(pk__in=problem_list)
         return problems
-    
+
+
+class AttemptedMineList(generics.ListAPIView):
+    serializer_class = ProblemSerializer
+
+    def get_queryset(self):
+        all_problem_list = Solution.objects.filter(user=self.request.user).values_list('problem').distinct()
+        accepted_list = Solution.objects.filter(user=self.request.user, solve_status="Accepted").values_list('problem').distinct()
+        problems = Problem.objects.filter(pk__in=all_problem_list).exclude(pk__in=accepted_list)
+        return problems
+
     
 class BookMarkMineList(generics.ListAPIView):
     serializer_class = ProblemSerializer
@@ -347,3 +367,4 @@ class RecommendedProblemList(generics.ListAPIView):
         recommendations = subcategory_match.union(role_match)[:5]
         
         return recommendations
+
