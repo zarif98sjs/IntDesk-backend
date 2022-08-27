@@ -51,3 +51,9 @@ Anytime you make changes to databas, do the following:
 - Install **package**
 
     `docker-compose run django pip install drf-nested-routers`
+
+# Database sync
+
+- docker-compose down
+- docker-compose down --volumes
+- docker-compose up
