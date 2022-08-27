@@ -1,6 +1,8 @@
-from django.db import models
+import imp
 from django.conf import settings
-from django.utils.timezone import now
+from django.db import models
+from django.utils import timezone
+
 
 class Company(models.Model):
     name = models.CharField(max_length=100)
@@ -69,10 +71,10 @@ class InputOutput(models.Model):
 
 
 class BookMark(models.Model):
-    date_added = models.DateTimeField(auto_now=True)
-
+    
+    time_added = models.DateTimeField(default=timezone.now, editable=False)
     # one to many relations
-    problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='bookmarks', null=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookmarks')
     
     def __str__(self):
@@ -87,10 +89,10 @@ class Solution(models.Model):
     solve_status = models.CharField(
         max_length=50, default="Pending"
     )
-    time_added = models.DateTimeField(default=now, editable=False)
+    time_added = models.DateTimeField(default=timezone.now, editable=False)
     # one to many relations
-    problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='solutions', null=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='solutions')
     
     def __str__(self):
-        return self.problem.name + " : " + self.user.name
+        return self.problem.name + " : " + str(self.user.id)
