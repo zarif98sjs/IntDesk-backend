@@ -8,6 +8,7 @@ from django.db import transaction
 from rest_framework import generics
 import random
 import datetime
+from itertools import chain
 from users.models import User
 
 # Create your views here.
@@ -186,6 +187,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
         ids = user_taken_assess.values_list('assessment', flat=True) 
         not_taken_assessments = Assessment.objects.exclude(id__in=[x for x in ids if x is not None])
+
+        # Recommend using previous given tests
         taken_assessments = Assessment.objects.filter(pk__in = user_taken_assess.values_list('assessment', flat=True) ).all()
         # print(taken_assessments )
         taken_assess_serializer = AssessmentSerializer( taken_assessments, many = True)
@@ -193,18 +196,30 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         roles_list = []
         for i in range( len( taken_assess_serializer.data ) ):
             for role in taken_assess_serializer.data[i]['roles']:
-                if role['name'] not in roles_list:
+                if role['id'] not in roles_list:
                     roles_list.append(role['id'])
-        print(roles_list)
-        recommended_assessments = not_taken_assessments.filter( roles__in = roles_list ) 
-        recommended_assess_serializer = AssessmentSerializer( recommended_assessments, many = True)
+       
+        recommended_assessments = not_taken_assessments.filter( roles__in = roles_list )
         # print( recommended_assess_serializer.data )
-        user = request.user
-        # print(user.skills)
-        # user = User(request.user)
-        # serializer = AssessmentSerializer(not_taken_assessments, many=True)
-        # print(serializer.data)
+        # Recommendation using user skills
+        user = User.objects.get(id=request.user.id)
+        if user.skills is not None:
+            for skill in user.skills:
+                skill_assess = not_taken_assessments.filter(skill_name__icontains = skill)
+                recommended_assessments = recommended_assessments | skill_assess  
+        recommended_assessments = recommended_assessments.distinct()
+       
+        if( recommended_assessments.count() < 5 ):
+            ids = recommended_assessments.values_list('id', flat=True) 
+            not_recommended_assessments = not_taken_assessments.exclude(id__in=[x for x in ids if x is not None]) 
+            print(not_recommended_assessments)
+            popular_assessments = not_recommended_assessments.order_by('-taken_by')
+            recommended_assessments = recommended_assessments.union( popular_assessments )
+        recommended_assessments = recommended_assessments[:5]
+
+        recommended_assess_serializer = AssessmentSerializer( recommended_assessments, many = True)
         return Response(recommended_assess_serializer.data)
+
 
     # get user status on an assessment
     @action(detail=True, methods=['get'])
@@ -290,28 +305,34 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         print("called assessresult")
         assessment_given = get_object_or_404(Assessment, pk=data['assessment'] )
         print(assessment_given)
-        userassessment = UserAssessment.objects.get_or_create(
+        userassessment, created = UserAssessment.objects.get_or_create(
             assessment = assessment_given,
             user = request.user
         )
         # print(type(userassessment))
         # print(len(userassessment))
         print(userassessment)
-        userassessment = userassessment[0]
-        print("get or create called too ")
-        userassessment.passed_by = False
-        userassessment.taken_by = datetime.datetime.now()
-        userassessment.save()
+        
+        if created == True:
+            assessment_given.taken_by = assessment_given.taken_by + 1
+        
+        userassessment.passed = False
+        userassessment.taken_time = datetime.datetime.now()
+        
         
         if (data['points'] * 100.0 / data['total_points'] >= pass_percentage):
             userassessment.passed = True
+            assessment_given.passed_by = assessment_given.passed_by + 1
             # serializer = UserAssessmentSerializer(userassessment)  
             # print(serializer.data)
             userassessment.save()
+            assessment_given.save()
             return Response("Passed")
 
         # serializer = UserAssessmentSerializer(userassessment)  
         # print(serializer.data)
+        userassessment.save()
+        assessment_given.save()
         return Response("Failed")
         
 
