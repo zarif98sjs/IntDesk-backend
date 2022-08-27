@@ -1,4 +1,5 @@
 import imp
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -62,6 +63,7 @@ class InputOutput(models.Model):
     input = models.TextField()
     output = models.TextField()
     points = models.IntegerField(default=0)
+    description = models.TextField(default="")
 
     # one to many relation
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='input_outputs', null=False)
