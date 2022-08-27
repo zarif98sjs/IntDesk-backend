@@ -8,6 +8,8 @@ from django.db import transaction
 from rest_framework import generics
 import random
 import datetime
+from itertools import chain
+from users.models import User
 
 # Create your views here.
 pass_percentage = 70.0
@@ -34,7 +36,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     queryset = Assessment.objects.all()
     serializer_class = AssessmentSerializer
     # http_method_names = ['get', 'post', 'head', 'delete', 'update']
- 
+
+  
 
     ## add new question to an assessment
     @action(detail=True, methods=['post'])
@@ -67,8 +70,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         )
         option.save()
         serializer = OptionSerializer(option)   
-        print("Option Serializer")
-        print(serializer.data)
+        # print("Option Serializer")
+        # print(serializer.data)
         ques_option = QuesOption.objects.create(
             question_id = question.id,
             option_id = option.id,
@@ -93,8 +96,6 @@ class AssessmentViewSet(viewsets.ModelViewSet):
             image_link = data['image_link'],
             # roles = data['roles']
         )
-        
-
         # if data.get('roles') is None:
         #     serializer = AssessmentSerializer(assessment)
         #     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -174,12 +175,85 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         serializer = AssessmentSerializer(assessment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
     ## get all assessments
     @action(detail=True, methods=['get'])
     def assessments(self, request, pk=None):
+        print("user")
+        # print(request.user)
         assessments = Assessment.objects.all()
         serializer = AssessmentSerializer(assessments, many=True)
         return Response(serializer.data)
+
+    ## get all assessments
+    @action(detail=False, methods=['get'])
+    def get_assessment(self, request, pk=None):
+
+        user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
+        ids = user_taken_assess.values_list('assessment', flat=True) 
+        not_taken_assessments = Assessment.objects.exclude(id__in=[x for x in ids if x is not None])
+        taken_assessments = Assessment.objects.filter(pk__in = ids ).all()
+        # print(taken_assessments)
+        # print(not_taken_assessments)
+        user_taken_assess_serializer = UserAssessmentSerializer(user_taken_assess, many = True)
+
+        user_status = [True] * taken_assessments.count()
+        for i in range( len( user_taken_assess_serializer.data ) ):
+            if( user_taken_assess_serializer.data[i]['passed'] == False ):
+                user_status[i] = user_taken_assess_serializer.data[i]['taken_time']
+        
+        user_status += [False] * not_taken_assessments.count() 
+        print(user_status)
+
+        assessments = taken_assessments | not_taken_assessments
+        serializer = AssessmentSerializer(assessments, many=True)
+        return Response({'assess': serializer.data, 'status': user_status})
+        # return Response(serializer.data)
+
+
+    # get recommended assessments
+    @action(detail=False, methods=['get'])
+    def get_recommended(self, request):
+        user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
+        ids = user_taken_assess.values_list('assessment', flat=True) 
+        not_taken_assessments = Assessment.objects.exclude(id__in=[x for x in ids if x is not None])
+
+        # Recommend using previous given tests
+        taken_assessments = Assessment.objects.filter(pk__in = user_taken_assess.values_list('assessment', flat=True) ).all()
+        # print(taken_assessments )
+        taken_assess_serializer = AssessmentSerializer( taken_assessments, many = True)
+        # print( type( taken_assess_serializer.data ) )
+        roles_list = []
+        for i in range( len( taken_assess_serializer.data ) ):
+            for role in taken_assess_serializer.data[i]['roles']:
+                if role['id'] not in roles_list:
+                    roles_list.append(role['id'])
+       
+        recommended_assessments = not_taken_assessments.filter( roles__in = roles_list )
+        # print( recommended_assess_serializer.data )
+        # Recommendation using user skills
+        user = User.objects.get(id=request.user.id)
+        if user.skills is not None:
+            for skill in user.skills:
+                skill_assess = not_taken_assessments.filter(skill_name__icontains = skill)
+                recommended_assessments = recommended_assessments | skill_assess  
+        recommended_assessments = recommended_assessments.distinct()
+       
+        if( recommended_assessments.count() < 5 ):
+            ids = recommended_assessments.values_list('id', flat=True) 
+            not_recommended_assessments = not_taken_assessments.exclude(id__in=[x for x in ids if x is not None]) 
+            popular_assessments = not_recommended_assessments.order_by('-taken_by')
+            # print("Popular")
+            # print(popular_assessments)
+            recommended_assessments = recommended_assessments.union( popular_assessments )
+            # print(recommended_assessments)
+        recommended_assessments = recommended_assessments[:5]
+
+        recommended_assess_serializer = AssessmentSerializer( recommended_assessments, many = True)
+        # print("Before returning")
+        # print(recommended_assess_serializer.data)
+        return Response(recommended_assess_serializer.data)
+
 
     # get user status on an assessment
     @action(detail=True, methods=['get'])
@@ -265,28 +339,34 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         print("called assessresult")
         assessment_given = get_object_or_404(Assessment, pk=data['assessment'] )
         print(assessment_given)
-        userassessment = UserAssessment.objects.get_or_create(
+        userassessment, created = UserAssessment.objects.get_or_create(
             assessment = assessment_given,
             user = request.user
         )
         # print(type(userassessment))
         # print(len(userassessment))
         print(userassessment)
-        userassessment = userassessment[0]
-        print("get or create called too ")
-        userassessment.passed_by = False
-        userassessment.taken_by = datetime.datetime.now()
-        userassessment.save()
+        
+        if created == True:
+            assessment_given.taken_by = assessment_given.taken_by + 1
+        
+        userassessment.passed = False
+        userassessment.taken_time = datetime.datetime.now()
+        
         
         if (data['points'] * 100.0 / data['total_points'] >= pass_percentage):
             userassessment.passed = True
+            assessment_given.passed_by = assessment_given.passed_by + 1
             # serializer = UserAssessmentSerializer(userassessment)  
             # print(serializer.data)
             userassessment.save()
+            assessment_given.save()
             return Response("Passed")
 
         # serializer = UserAssessmentSerializer(userassessment)  
         # print(serializer.data)
+        userassessment.save()
+        assessment_given.save()
         return Response("Failed")
         
 
