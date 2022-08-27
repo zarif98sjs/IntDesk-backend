@@ -155,22 +155,20 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         data = request.data
         assessment = get_object_or_404(Assessment, pk=kwargs['pk'])
+        print(data['roles'])
         if data.get('skill_name') is not None: assessment.skill_name = data['skill_name']
         if data.get('image_link') is not None: assessment.image_link = data['image_link']
         # update passed_by and taken by of an assessment
-        if data.get('passed_by') is not None: assessment.passed_by = assessment.passed_by + data['passed_by']
-        if data.get('taken_by') is not None: assessment.taken_by = assessment.taken_by + data['taken_by']
+        if data.get('passed_by') is not None: assessment.passed_by =  int( data['passed_by'] )
+        if data.get('taken_by') is not None: assessment.taken_by =  int( data['taken_by'] )
         # ---------------------------------------------
-       
+        # assessment.roles = assessment.roles.def
+        # setattr(assessment, assessroles, roles.default)
         for role in data.get('roles'):
             role, created = Role.objects.get_or_create(name=role)
             role.save()
             assessment.roles.add(role)
-        for category in data.get('categories'):
-            # print(role)
-            category, created = Category.objects.get_or_create(name=category)
-            category.save()
-            assessment.categories.add(category)
+        
         assessment.save()
         serializer = AssessmentSerializer(assessment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
