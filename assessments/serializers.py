@@ -70,6 +70,7 @@ class UserAssessmentSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = UserAssessment
         fields = '__all__'
+        ordering = ("assessment",)
         unique_together = (("user", "assessment"),)
         extra_kwargs = {
             'user': {'required': True},
