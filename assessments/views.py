@@ -212,12 +212,16 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         if( recommended_assessments.count() < 5 ):
             ids = recommended_assessments.values_list('id', flat=True) 
             not_recommended_assessments = not_taken_assessments.exclude(id__in=[x for x in ids if x is not None]) 
-            print(not_recommended_assessments)
             popular_assessments = not_recommended_assessments.order_by('-taken_by')
+            # print("Popular")
+            # print(popular_assessments)
             recommended_assessments = recommended_assessments.union( popular_assessments )
+            # print(recommended_assessments)
         recommended_assessments = recommended_assessments[:5]
 
         recommended_assess_serializer = AssessmentSerializer( recommended_assessments, many = True)
+        # print("Before returning")
+        # print(recommended_assess_serializer.data)
         return Response(recommended_assess_serializer.data)
 
 
