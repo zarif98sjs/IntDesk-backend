@@ -158,7 +158,6 @@ class DiscussionViewSet(viewsets.ModelViewSet):
 
     
 
-
 class DiscussionMineList(generics.ListAPIView):
     serializer_class = DiscussionSerializer
 
