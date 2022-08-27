@@ -13,3 +13,4 @@ class User(User):
     github_link = models.URLField(blank=True)
     languages = ArrayField(models.CharField(max_length=100), blank=True, null=True)
     skills = ArrayField(models.CharField(max_length=100), blank=True, null=True)
+    is_admin = models.BooleanField(default=True)

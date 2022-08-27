@@ -1,9 +1,10 @@
 from sre_constants import IN
+
 from rest_framework import serializers
-from problems.models import Company, Role, Category, SubCategory, Problem, \
-    InputOutput, BookMark, Solution
 from users.serializers import UserSerializer
 
+from problems.models import (BookMark, Category, Company, InputOutput, Problem,
+                             Role, Solution, SubCategory)
 
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
