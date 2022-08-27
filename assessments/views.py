@@ -36,7 +36,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     queryset = Assessment.objects.all()
     serializer_class = AssessmentSerializer
     # http_method_names = ['get', 'post', 'head', 'delete', 'update']
- 
+
+  
 
     ## add new question to an assessment
     @action(detail=True, methods=['post'])
@@ -69,8 +70,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         )
         option.save()
         serializer = OptionSerializer(option)   
-        print("Option Serializer")
-        print(serializer.data)
+        # print("Option Serializer")
+        # print(serializer.data)
         ques_option = QuesOption.objects.create(
             question_id = question.id,
             option_id = option.id,
@@ -174,12 +175,41 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         serializer = AssessmentSerializer(assessment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
     ## get all assessments
     @action(detail=True, methods=['get'])
     def assessments(self, request, pk=None):
+        print("user")
+        # print(request.user)
         assessments = Assessment.objects.all()
         serializer = AssessmentSerializer(assessments, many=True)
         return Response(serializer.data)
+
+    ## get all assessments
+    @action(detail=False, methods=['get'])
+    def get_assessment(self, request, pk=None):
+
+        user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
+        ids = user_taken_assess.values_list('assessment', flat=True) 
+        not_taken_assessments = Assessment.objects.exclude(id__in=[x for x in ids if x is not None])
+        taken_assessments = Assessment.objects.filter(pk__in = ids ).all()
+        # print(taken_assessments)
+        # print(not_taken_assessments)
+        user_taken_assess_serializer = UserAssessmentSerializer(user_taken_assess, many = True)
+
+        user_status = [True] * taken_assessments.count()
+        for i in range( len( user_taken_assess_serializer.data ) ):
+            if( user_taken_assess_serializer.data[i]['passed'] == False ):
+                user_status[i] = user_taken_assess_serializer.data[i]['taken_time']
+        
+        user_status += [False] * not_taken_assessments.count() 
+        print(user_status)
+
+        assessments = taken_assessments | not_taken_assessments
+        serializer = AssessmentSerializer(assessments, many=True)
+        return Response({'assess': serializer.data, 'status': user_status})
+        # return Response(serializer.data)
+
 
     # get recommended assessments
     @action(detail=False, methods=['get'])
