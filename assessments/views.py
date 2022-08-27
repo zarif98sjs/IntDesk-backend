@@ -63,7 +63,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     def options(self, request, pk):
         
         data = request.data
-        # print(data)
+        print(data)
         question = get_object_or_404(Question, pk=data['ques'])
         option = Option.objects.create(
             description = data['option_description'],
@@ -189,16 +189,24 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def get_assessment(self, request, pk=None):
 
-        user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
+        user_taken_assess = UserAssessment.objects.filter(user=self.request.user).distinct().order_by('assessment')
+        # print(user_taken_assess.count())
         ids = user_taken_assess.values_list('assessment', flat=True) 
+        # print(ids)
         not_taken_assessments = Assessment.objects.exclude(id__in=[x for x in ids if x is not None])
-        taken_assessments = Assessment.objects.filter(pk__in = ids ).all()
+        taken_assessments = Assessment.objects.filter(pk__in = ids ).order_by('id')
         # print(taken_assessments)
         # print(not_taken_assessments)
         user_taken_assess_serializer = UserAssessmentSerializer(user_taken_assess, many = True)
 
         user_status = [True] * taken_assessments.count()
+        length = taken_assessments.count()
+        
+        # print(type(user_taken_assess_serializer.data))
+
+        # print(user_taken_assess_serializer.data)
         for i in range( len( user_taken_assess_serializer.data ) ):
+            print(user_taken_assess_serializer.data[i]['assessment'])
             if( user_taken_assess_serializer.data[i]['passed'] == False ):
                 user_status[i] = user_taken_assess_serializer.data[i]['taken_time']
         
