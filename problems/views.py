@@ -322,17 +322,17 @@ class SolvedMineList(generics.ListAPIView):
     serializer_class = ProblemSerializer
 
     def get_queryset(self):
-        problem_list = Solution.objects.filter(user=self.request.user, solve_status="Accepted").values_list('problem').distinct()
+        problem_list = Solution.objects.filter(user__username=self.kwargs['username'], solve_status="Accepted").values_list('problem').distinct()
         problems = Problem.objects.filter(pk__in=problem_list)
         return problems
 
 
 class AttemptedMineList(generics.ListAPIView):
     serializer_class = ProblemSerializer
-
+    
     def get_queryset(self):
-        all_problem_list = Solution.objects.filter(user=self.request.user).values_list('problem').distinct()
-        accepted_list = Solution.objects.filter(user=self.request.user, solve_status="Accepted").values_list('problem').distinct()
+        all_problem_list = Solution.objects.filter(user__username=self.kwargs['username']).values_list('problem').distinct()
+        accepted_list = Solution.objects.filter(user__username=self.kwargs['username'], solve_status="Accepted").values_list('problem').distinct()
         problems = Problem.objects.filter(pk__in=all_problem_list).exclude(pk__in=accepted_list)
         return problems
 

@@ -11,10 +11,12 @@ router.register('problem', ProblemViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('mysolved/', SolvedMineList.as_view()),
-    path('mysolved/test_solutions', SolvedMineList.as_view()),
+    path('mysolved/<str:username>/', SolvedMineList.as_view()),
     path('myattempted/', AttemptedMineList.as_view()),
+    path('myattempted/<str:username>/', AttemptedMineList.as_view()),
     path('mybookmarks/', BookMarkMineList.as_view()),
     path('popular/', PopularProblemList.as_view()),
     path('recommended/', RecommendedProblemList.as_view()),
+    
     
 ]
