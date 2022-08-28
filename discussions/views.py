@@ -1,3 +1,4 @@
+from cgitb import lookup
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -164,3 +165,9 @@ class DiscussionMineList(generics.ListAPIView):
 
     def get_queryset(self):
         return Discussion.objects.filter(user=self.request.user)
+
+class DiscussionUserList(generics.ListAPIView):
+    serializer_class = DiscussionSerializer
+    lookup_field = 'username'
+    def get_queryset(self):
+        return Discussion.objects.filter(user__username=self.kwargs['username'])

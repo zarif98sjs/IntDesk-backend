@@ -382,30 +382,16 @@ class AssessmentViewSet(viewsets.ModelViewSet):
 class AssessmentMineList(generics.ListAPIView):
     # queryset = UserAssessment.objects.all()
     serializer_class = UserAssessmentSerializer
-
     
     def get_queryset(self):
-        # user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
-        # print(user_taken_assess)
-        # # # user_taken_assess.delete()
-        # user_taken_assess_serializer = UserAssessmentSerializer(user_taken_assess, many = True) 
-        # print("Hello")
-        # print(user_taken_assess_serializer.data)
-        # print("Bye")
-        # print(user_taken_assess.values_list('assessment', flat=True) )
-        # taken_assessments = Assessment.objects.filter(pk__in = user_taken_assess.values_list('assessment', flat=True) ).all()
-        # # taken_assessments = Assessment.objects.get( pk = user_taken_assess_serializer.data[:]['assessment'], many = True)
-        # taken_assessments_serializer = AssessmentSerializer(taken_assessments, many = True)
-        # print(taken_assessments_serializer.data)
         return UserAssessment.objects.filter(user=self.request.user)
+ 
     
-    # # # Delete taken assessments of a user
-    # @action(detail=True, methods=['DELETE'])
-    # def delete(self, request):
-    #     user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
-    #     user_taken_assess.delete()
-    #     return Response('deleted')
-        
+class AssessmentUserList(generics.ListAPIView):
+    serializer_class = UserAssessmentSerializer
+    lookup_field = 'username'
+    def get_queryset(self):
+        return UserAssessment.objects.filter(user__username=self.kwargs['username'])
     
 
     
