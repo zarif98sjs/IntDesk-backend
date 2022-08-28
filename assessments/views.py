@@ -164,6 +164,9 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         # ---------------------------------------------
         # assessment.roles = assessment.roles.def
         # setattr(assessment, assessroles, roles.default)
+
+        ## clear assesment.roles
+        assessment.roles.clear()
         for role in data.get('roles'):
             role, created = Role.objects.get_or_create(name=role)
             role.save()
