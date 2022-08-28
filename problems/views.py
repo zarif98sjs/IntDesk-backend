@@ -1,8 +1,8 @@
 
-from operator import ne
 
 from django import views
 from django.db import transaction
+from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
@@ -311,6 +311,18 @@ class ProblemViewSet(viewsets.ModelViewSet):
         return Response(ret, status=status.HTTP_200_OK)
 
 
+    # get easy, medium, hard solve counts
+    @action(detail=True, methods=['GET'])
+    def get_solve_counts(self, request, pk):
+        
+        all_problems_count = Problem.objects.all().values_list('difficulty').annotate(count = Count('difficulty'))
+        
+        problem_list = Solution.objects.filter(user__id=pk, solve_status="Accepted").values_list('problem').distinct()
+        solved_problems = Problem.objects.filter(pk__in=problem_list)
+        solved_problems_count = solved_problems.values_list('difficulty').annotate(count = Count('difficulty'))
+        
+        return Response({"all": all_problems_count, "solved": solved_problems_count}, status=status.HTTP_200_OK)
+
     
     
 
@@ -322,17 +334,18 @@ class SolvedMineList(generics.ListAPIView):
     serializer_class = ProblemSerializer
 
     def get_queryset(self):
-        problem_list = Solution.objects.filter(user=self.request.user, solve_status="Accepted").values_list('problem').distinct()
+        problem_list = Solution.objects.filter(user__username=self.kwargs['username'], solve_status="Accepted").values_list('problem').distinct()
         problems = Problem.objects.filter(pk__in=problem_list)
         return problems
 
 
 class AttemptedMineList(generics.ListAPIView):
     serializer_class = ProblemSerializer
-
+    
     def get_queryset(self):
-        all_problem_list = Solution.objects.filter(user=self.request.user).values_list('problem').distinct()
-        accepted_list = Solution.objects.filter(user=self.request.user, solve_status="Accepted").values_list('problem').distinct()
+
+        all_problem_list = Solution.objects.filter(user__username=self.kwargs['username']).values_list('problem').distinct()
+        accepted_list = Solution.objects.filter(user__username=self.kwargs['username'], solve_status="Accepted").values_list('problem').distinct()
         problems = Problem.objects.filter(pk__in=all_problem_list).exclude(pk__in=accepted_list)
         return problems
 
