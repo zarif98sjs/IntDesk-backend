@@ -15,7 +15,7 @@ from django.db.models import Case, When
 
 
 # Create your views here.
-pass_percentage = 0.0
+pass_percentage = 70.0
 
 def get_difficulty( request ):
     # print("inside difficulty function")
@@ -161,7 +161,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         data = request.data
         assessment = get_object_or_404(Assessment, pk=kwargs['pk'])
-        print(data['roles'])
+        print(data)
         if data.get('skill_name') is not None: assessment.skill_name = data['skill_name']
         if data.get('image_link') is not None: assessment.image_link = data['image_link']
         # update passed_by and taken by of an assessment
@@ -199,10 +199,17 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
         # print(user_taken_assess.count())
         ids = user_taken_assess.values_list('assessment', flat=True) 
-        # print(ids)
+        print(ids)
         not_taken_assessments = Assessment.objects.exclude(id__in=[x for x in ids if x is not None])
+        print("hel")
         preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-        taken_assessments = Assessment.objects.filter(pk__in = ids ).order_by(preserved)
+        print(type(preserved))
+        print(preserved)
+        print(ids)
+        if len(ids) == 0:
+            taken_assessments = Assessment.objects.none()
+        else:
+            taken_assessments = Assessment.objects.filter(pk__in = ids ).order_by(preserved)
         # print(taken_assessments)
         # print(not_taken_assessments)
         user_taken_assess_serializer = UserAssessmentSerializer(user_taken_assess, many = True)
