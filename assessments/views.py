@@ -8,17 +8,20 @@ from django.db import transaction
 from rest_framework import generics
 import random
 import datetime
+import itertools
 from itertools import chain
 from users.models import User
+from django.db.models import Case, When
+
 
 # Create your views here.
-pass_percentage = 70.0
+pass_percentage = 0.0
 
 def get_difficulty( request ):
     # print("inside difficulty function")
     # print(request.data)
     available_difficulty = ['E', 'M', 'H']
-    limit = 2
+    limit = 5
     if request.data['E'] >= limit :
         available_difficulty.remove('E')
     if request.data['M'] >= limit :
@@ -55,6 +58,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         )
         question.save()
         serializer = QuestionSerializer(question)     
+        print("Create Questions")
+        print(serializer)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -63,6 +68,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     def options(self, request, pk):
         
         data = request.data
+        print("Create Options")
         print(data)
         question = get_object_or_404(Question, pk=data['ques'])
         option = Option.objects.create(
@@ -187,12 +193,13 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def get_assessment(self, request, pk=None):
 
-        user_taken_assess = UserAssessment.objects.filter(user=self.request.user).distinct().order_by('assessment')
+        user_taken_assess = UserAssessment.objects.filter(user=self.request.user)
         # print(user_taken_assess.count())
         ids = user_taken_assess.values_list('assessment', flat=True) 
         # print(ids)
         not_taken_assessments = Assessment.objects.exclude(id__in=[x for x in ids if x is not None])
-        taken_assessments = Assessment.objects.filter(pk__in = ids ).order_by('id')
+        preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
+        taken_assessments = Assessment.objects.filter(pk__in = ids ).order_by(preserved)
         # print(taken_assessments)
         # print(not_taken_assessments)
         user_taken_assess_serializer = UserAssessmentSerializer(user_taken_assess, many = True)
@@ -201,18 +208,24 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         length = taken_assessments.count()
         
         # print(type(user_taken_assess_serializer.data))
-
-        # print(user_taken_assess_serializer.data)
+        
         for i in range( len( user_taken_assess_serializer.data ) ):
-            print(user_taken_assess_serializer.data[i]['assessment'])
+            # print(user_taken_assess_serializer.data[i]['assessment'])
             if( user_taken_assess_serializer.data[i]['passed'] == False ):
                 user_status[i] = user_taken_assess_serializer.data[i]['taken_time']
         
         user_status += [False] * not_taken_assessments.count() 
+        print("user status")
         print(user_status)
-
-        assessments = taken_assessments | not_taken_assessments
+        print(taken_assessments)
+        print(not_taken_assessments)
+        # assessments = taken_assessments.union( not_taken_assessments )
+        assessments = list(itertools.chain(taken_assessments, not_taken_assessments))
+        print(assessments)
         serializer = AssessmentSerializer(assessments, many=True)
+        # print(type(serializer.data))
+        print("Final Serializer")
+        print(serializer.data)
         return Response({'assess': serializer.data, 'status': user_status})
         # return Response(serializer.data)
 
@@ -290,6 +303,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['POST'])
     def questions(self, request, pk=None):
         # print(request.data)
+        # print(pk)
         ids = request.data['quesID']
         assess = get_object_or_404(Assessment, pk=pk)
         chosen_difficulty = get_difficulty(request)
@@ -297,6 +311,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         questions = assess.question.filter( difficulty_level = chosen_difficulty ).exclude(id__in=[x for x in ids if x is not None])
         # print( len( questions ) )
         # questions = assess.question.all()
+        # print(questions)
         question = questions.order_by("?").first()
         serializer = QuestionSerializer(question)
         # print(serializer.data)
