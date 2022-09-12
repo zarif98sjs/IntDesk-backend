@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import os
 from pathlib import Path
+import environ
+
+env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -102,6 +105,10 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'test.db'),
     }
 }
+
+if "DATABASE_URL" in env:
+    DATABASES['default'] = env.db('DATABASE_URL')
+    DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 
 # Password validation
