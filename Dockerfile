@@ -13,3 +13,4 @@ ENV PYTHONUNBUFFERED 1
 COPY . /usr/src/app
 
 # RUN python manage.py collectstatic --noinput
+CMD gunicorn -b 0.0.0.0:$PORT intdesk.wsgi:application
