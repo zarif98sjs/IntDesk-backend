@@ -12,6 +12,8 @@ Your go-to interview preparation platform
 
 The project is deployed on Netlify and can be accessed here : [https://intdesk.netlify.app/](https://intdesk.netlify.app/)
 
+The backend of the project is deployed on Heroku and can be accessed here : [https://intdesk.herokuapp.com/](https://intdesk.herokuapp.com/)
+
 The frontend of the project can be found in the following repository 
 
 [![zarif98sjs/IntDesk-Frontend - GitHub](https://gh-card.dev/repos/zarif98sjs/IntDesk-Frontend.svg)](https://github.com/zarif98sjs/IntDesk-Frontend)
