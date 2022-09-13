@@ -7,8 +7,8 @@ services:
       - .env
     ports:
       - 54320:5432
-    # volumes:
-    #   - ./db:/docker-entrypoint-initdb.d/:ro
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/:ro
 
   django:
     build: .

@@ -1,53 +1,40 @@
-# **`IntDesk-backend`**
+# **`IntDesk`**
 
-# Setup and Start
+<p align='center'>
+<img alt="IntDesk" src="logo/logo1.png" />
+<br/>
+Your go-to interview preparation platform
+</p>
 
-- install docker first
-- git clone repo
-- `docker build .`$$
-- `docker-compose run django python manage.py makemigrations`
-- `docker-compose run django python manage.py migrate`
-- `docker-compose up`
+# **Project Overview**
 
+`IntDesk` is an all-in-one tech interview preperation platform. Here the users can not only solve problems that are asked in interviews of different software companies, but also can take assesments and earn different badges to showcase their skills. They can also discuss about interview problems and many more topics!
 
-Anytime you make changes to databas, do the following:
-- `docker-compose run django python manage.py makemigrations`
-- `docker-compose run django python manage.py migrate`
+The project is deployed on Netlify and can be accessed here : [https://intdesk.netlify.app/](https://intdesk.netlify.app/)
 
-# Docker Commands
- 
-- **Build** `Dockerfile` 
+The frontend of the project can be found in the following repository 
+
+[![zarif98sjs/IntDesk-Frontend - GitHub](https://gh-card.dev/repos/zarif98sjs/IntDesk-Frontend.svg)](https://github.com/zarif98sjs/IntDesk-Frontend)
+
+# **Project Architecture**
+
+We followed the MVC Architecture for this project
+
+![](architecture/architecture.png)
+
+# **Tech Stack & Tools**
+
+- Frontend : `React`, `HTML`, `CSS`
+- Backend : `Django Rest Framework`
+- Database : `PostgreSQL`
+- Miscellaneous : `Docker`, `Postman` 
   
-    `docker build .`
 
-- **Start Django Project** using `django` service defined inside docker-compose
-  
-    `docker-compose run django django-admin startproject intdesk_api .`
+# **Documentation**
 
-- **Start Django App**
-  
-    `docker-compose run django django-admin startapp questions`
+Postman was used to document the API endpoints. The documentation can be found here :
 
-- Run `docker-compose`
-  
-    `docker-compose up`
-
-- To **build image** after making changes 
-
-    `docker-compose up --build`
-
-- **Migrate** database 
-
-    `docker-compose run django python manage.py makemigrate`
-
-- **Apply** migration
-
-    `docker-compose run django python manage.py migrate`
-
-- Crete **superuser** 
-
-    `docker-compose run django python manage.py createsuperuser`
-
-- Install **package**
-
-    `docker-compose run django pip install drf-nested-routers`
+- User endpoints : [https://documenter.getpostman.com/view/21954189/2s7YYsdPrg](https://documenter.getpostman.com/view/21954189/2s7YYsdPrg)
+- Discussion endpoints : [https://documenter.getpostman.com/view/21954189/2s7YYsdPnG](https://documenter.getpostman.com/view/21954189/2s7YYsdPnG)
+- Problem endpoints : 
+- Assessment endpoints :
